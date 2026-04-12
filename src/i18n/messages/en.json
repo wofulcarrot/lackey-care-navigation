@@ -1,0 +1,42 @@
+{
+  "landing": {
+    "hero": "Get the right care, right now",
+    "subtitle": "Free help finding the care you need — no insurance required",
+    "getCareNow": "Get Care Now",
+    "virtualCare": "Start a Free Virtual Visit (24/7)",
+    "call911": "Call 911"
+  },
+  "emergency": {
+    "title": "Are you experiencing any of these right now?",
+    "noneOfThese": "None of these — continue",
+    "alert": "Call 911 Now",
+    "alertBody": "Based on your symptoms, please call 911 or go to your nearest emergency room immediately."
+  },
+  "careType": {
+    "title": "What kind of help do you need?",
+    "notSure": "I'm not sure — help me decide"
+  },
+  "triage": {
+    "helpText": "What does this mean?",
+    "back": "Back",
+    "next": "Next"
+  },
+  "virtualCareInterstitial": {
+    "heading": "You may be able to get free care right now",
+    "startVisit": "Start Free Virtual Visit",
+    "showOther": "Show me other options"
+  },
+  "results": {
+    "heading": "Based on your answers, here's what we recommend",
+    "getDirections": "Get directions",
+    "call": "Call",
+    "eligibility": "Check if you qualify for free care",
+    "startOver": "Start over",
+    "temporaryNotice": "Notice"
+  },
+  "common": {
+    "privacy": "We don't collect personal information.",
+    "poweredBy": "Powered by Lackey Clinic",
+    "translationPending": "Translation pending"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "landing": {
+    "hero": "Obtenga la atención adecuada ahora",
+    "subtitle": "Ayuda gratuita para encontrar la atención que necesita — no se requiere seguro",
+    "getCareNow": "Obtener atención ahora",
+    "virtualCare": "Iniciar una visita virtual gratuita (24/7)",
+    "call911": "Llamar al 911"
+  },
+  "emergency": {
+    "title": "¿Está experimentando alguno de estos síntomas ahora?",
+    "noneOfThese": "Ninguno de estos — continuar",
+    "alert": "Llame al 911 ahora",
+    "alertBody": "Según sus síntomas, llame al 911 o vaya a la sala de emergencias más cercana de inmediato."
+  },
+  "careType": {
+    "title": "¿Qué tipo de ayuda necesita?",
+    "notSure": "No estoy seguro — ayúdeme a decidir"
+  },
+  "triage": {
+    "helpText": "¿Qué significa esto?",
+    "back": "Atrás",
+    "next": "Siguiente"
+  },
+  "virtualCareInterstitial": {
+    "heading": "Es posible que pueda recibir atención gratuita ahora mismo",
+    "startVisit": "Iniciar visita virtual gratuita",
+    "showOther": "Mostrar otras opciones"
+  },
+  "results": {
+    "heading": "Según sus respuestas, esto es lo que recomendamos",
+    "getDirections": "Obtener direcciones",
+    "call": "Llamar",
+    "eligibility": "Verifique si califica para atención gratuita",
+    "startOver": "Comenzar de nuevo",
+    "temporaryNotice": "Aviso"
+  },
+  "common": {
+    "privacy": "No recopilamos información personal.",
+    "poweredBy": "Desarrollado por Lackey Clinic",
+    "translationPending": "Traducción pendiente"
+  }
+}
