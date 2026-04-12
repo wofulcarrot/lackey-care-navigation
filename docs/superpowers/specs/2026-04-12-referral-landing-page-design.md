@@ -112,7 +112,7 @@ Classification buckets the triage engine maps scores into.
 |-------|------|-------------|
 | name | text (localized) | "Life-Threatening", "Emergent", "Urgent", "Semi-Urgent", "Routine", "Elective" |
 | color | text | UI color coding (red → lavender) |
-| scoreThreshold | number | Minimum cumulative score to trigger this level |
+| scoreThreshold | number | Minimum cumulative score to trigger this level. Levels are evaluated highest-threshold-first; the first level whose threshold the score meets or exceeds is the match. |
 | timeToCare | text | "Immediate", "Same Day", "1-3 Days", "1-2 Weeks", "3-8 Weeks", "As Available" |
 | description | text (localized) | Patient-friendly explanation |
 
@@ -175,6 +175,7 @@ Anonymous analytics. Zero PII. Powers grant reporting.
 | completedFlow | boolean | Whether patient reached results page |
 | locale | select | "en", "es" |
 | device | select | "mobile", "tablet", "desktop" |
+| questionSetVersion | number | Version of the QuestionSet that was active during this session. Enables correlating outcomes with specific rule versions for grant reporting. |
 
 #### AdminUsers
 Payload built-in auth with roles: `admin` (full access) and `editor` (resources + content only).
@@ -281,7 +282,7 @@ Payload built-in auth with roles: `admin` (full access) and `editor` (resources 
 - **Question Sets** (admin only) — Create versioned question sets per care type. Configure answer weights, branching, escalation. Set one version as active. Old versions preserved for audit.
 - **Routing Rules** (admin only) — Map (CareType + UrgencyLevel) to resources. Set Virtual Care eligibility. Write action text and next-steps instructions.
 - **Static Content** — Hero text, footer, about, Virtual Care interstitial copy, privacy notice. All localized EN/ES.
-- **Analytics Dashboard** (read-only for editors) — Session counts, completion rates, care type distribution, urgency breakdown, Virtual Care offer/accept rates, emergency screen triggers. Filterable by date range. Exportable for grant reports.
+- **Analytics Dashboard** (read-only for editors) — Custom dashboard page within the Payload admin panel (not just default list views). Displays summary cards (session count, completion rate, Virtual Care offers, emergency triggers) and a filterable table of TriageSessions. Date range filter and CSV export for grant reports. Built as a Payload custom admin view.
 
 ### 4.3 Localization Workflow
 
