@@ -1,28 +1,28 @@
-interface AnswerScore {
+export interface AnswerScore {
   answerId: string
   urgencyWeight: number
 }
 
-interface UrgencyLevel {
+export interface UrgencyLevel {
   id: string
   name: string
   scoreThreshold: number
 }
 
-interface Answer {
+export interface Answer {
   nextQuestion: string | null
 }
 
-interface Question {
+export interface Question {
   id: string
   sortOrder: number
 }
 
-interface EscalatableAnswer {
+export interface EscalatableAnswer {
   escalateImmediately: boolean
 }
 
-interface MetaAnswer {
+export interface MetaAnswer {
   redirectToCareType: string | null
 }
 
@@ -44,7 +44,7 @@ export function resolveNextQuestion(
   currentQuestionId: string,
   questions: Question[],
 ): string | null {
-  if (answer.nextQuestion) return answer.nextQuestion
+  if (answer.nextQuestion !== null) return answer.nextQuestion
   const sorted = [...questions].sort((a, b) => a.sortOrder - b.sortOrder)
   const currentIndex = sorted.findIndex((q) => q.id === currentQuestionId)
   if (currentIndex === -1 || currentIndex >= sorted.length - 1) return null
