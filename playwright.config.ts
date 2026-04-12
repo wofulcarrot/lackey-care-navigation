@@ -2,6 +2,11 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests/e2e',
+  webServer: {
+    command: 'npm run dev',
+    port: 3000,
+    reuseExistingServer: true,
+  },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -14,11 +19,11 @@ export default defineConfig({
   projects: [
     {
       name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      use: { ...devices['Pixel 7'] },
     },
     {
       name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
+      use: { ...devices['iPhone 14'] },
     },
     {
       name: 'Desktop Chrome',

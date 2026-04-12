@@ -14,7 +14,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "generate:types": "payload generate:types",
-    "seed": "tsx src/scripts/seed.ts"
+    "seed": "tsx src/seed/seed.ts"
   },
   "keywords": [],
   "author": "",
