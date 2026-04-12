@@ -6,6 +6,15 @@ import { es } from '@payloadcms/translations/languages/es'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { Users } from './collections/Users'
+import { CareTypes } from './collections/CareTypes'
+import { UrgencyLevels } from './collections/UrgencyLevels'
+import { Questions } from './collections/Questions'
+import { QuestionSets } from './collections/QuestionSets'
+import { CareResources } from './collections/CareResources'
+import { RoutingRules } from './collections/RoutingRules'
+import { EmergencySymptoms } from './collections/EmergencySymptoms'
+import { StaticContent } from './collections/StaticContent'
+import { TriageSessions } from './collections/TriageSessions'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -17,7 +26,18 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users],
+  collections: [
+    Users,
+    CareTypes,
+    UrgencyLevels,
+    Questions,
+    QuestionSets,
+    CareResources,
+    RoutingRules,
+    EmergencySymptoms,
+    TriageSessions,
+  ],
+  globals: [StaticContent],
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
