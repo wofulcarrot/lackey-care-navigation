@@ -1,4 +1,5 @@
-import { NextIntlClientProvider, useMessages } from 'next-intl'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { Header } from '@/components/Header'
@@ -13,7 +14,7 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params
   if (!routing.locales.includes(locale as any)) notFound()
-  const messages = useMessages()
+  const messages = await getMessages()
 
   return (
     <NextIntlClientProvider messages={messages}>
