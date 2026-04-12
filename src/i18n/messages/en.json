@@ -37,6 +37,8 @@
   "common": {
     "privacy": "We don't collect personal information.",
     "poweredBy": "Powered by Lackey Clinic",
-    "translationPending": "Translation pending"
+    "translationPending": "Translation pending",
+    "errorTitle": "We're having trouble loading this page",
+    "startVirtualVisit": "Start Free Virtual Visit"
   }
 }

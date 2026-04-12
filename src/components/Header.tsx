@@ -21,7 +21,7 @@ export function Header() {
       <div className="flex items-center gap-3">
         <a
           href="tel:911"
-          className="text-red-600 font-bold text-sm px-3 py-1 border border-red-600 rounded-full"
+          className="text-red-600 font-bold text-sm px-3 py-1 border border-red-600 rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center"
         >
           {t('call911')}
         </a>
