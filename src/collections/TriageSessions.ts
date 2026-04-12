@@ -12,7 +12,7 @@ export const TriageSessions: CollectionConfig = {
     delete: ({ req }) => req.user?.role === 'admin',
   },
   fields: [
-    { name: 'sessionId', type: 'text', required: true },
+    { name: 'sessionId', type: 'text', required: true, unique: true, index: true },
     { name: 'careTypeSelected', type: 'relationship', relationTo: 'care-types' },
     { name: 'urgencyResult', type: 'relationship', relationTo: 'urgency-levels' },
     { name: 'resourcesShown', type: 'relationship', relationTo: 'care-resources', hasMany: true },

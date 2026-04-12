@@ -12,6 +12,6 @@ export const EmergencySymptoms: CollectionConfig = {
   fields: [
     { name: 'symptom', type: 'text', required: true, localized: true },
     { name: 'sortOrder', type: 'number', required: true, defaultValue: 0 },
-    { name: 'isActive', type: 'checkbox', defaultValue: true },
+    { name: 'isActive', type: 'checkbox', defaultValue: true, index: true },
   ],
 }

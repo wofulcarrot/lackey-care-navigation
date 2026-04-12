@@ -12,8 +12,8 @@ export const RoutingRules: CollectionConfig = {
     delete: ({ req }) => req.user?.role === 'admin',
   },
   fields: [
-    { name: 'careType', type: 'relationship', relationTo: 'care-types', required: true },
-    { name: 'urgencyLevel', type: 'relationship', relationTo: 'urgency-levels', required: true },
+    { name: 'careType', type: 'relationship', relationTo: 'care-types', required: true, index: true },
+    { name: 'urgencyLevel', type: 'relationship', relationTo: 'urgency-levels', required: true, index: true },
     { name: 'resources', type: 'relationship', relationTo: 'care-resources', hasMany: true, required: true },
     { name: 'virtualCareEligible', type: 'checkbox', defaultValue: false },
     { name: 'actionText', type: 'text', required: true, localized: true,

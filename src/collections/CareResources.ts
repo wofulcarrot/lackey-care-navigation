@@ -59,7 +59,7 @@ export const CareResources: CollectionConfig = {
       ],
     },
     { name: 'eligibility', type: 'textarea', localized: true },
-    { name: 'isActive', type: 'checkbox', defaultValue: true },
+    { name: 'isActive', type: 'checkbox', defaultValue: true, index: true },
     { name: 'temporaryNotice', type: 'text', localized: true,
       admin: { description: 'Alert banner shown on the resource card (e.g., "Closed for holiday until Jan 2")' } },
     { name: 'temporaryNoticeExpires', type: 'date',

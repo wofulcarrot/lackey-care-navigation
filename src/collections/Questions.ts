@@ -3,6 +3,12 @@ import type { CollectionConfig } from 'payload'
 export const Questions: CollectionConfig = {
   slug: 'questions',
   admin: { useAsTitle: 'text' },
+  access: {
+    read: () => true,
+    create: ({ req }) => req.user?.role === 'admin',
+    update: ({ req }) => req.user?.role === 'admin',
+    delete: ({ req }) => req.user?.role === 'admin',
+  },
   fields: [
     { name: 'text', type: 'text', required: true, localized: true },
     { name: 'helpText', type: 'textarea', localized: true },
