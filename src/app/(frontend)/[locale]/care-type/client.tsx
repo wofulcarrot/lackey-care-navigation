@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { CareTypeCard } from '@/components/CareTypeCard'
 
 interface CareType {
@@ -15,6 +15,7 @@ interface CareType {
 export function CareTypeSelectionClient({ careTypes }: { careTypes: CareType[] }) {
   const router = useRouter()
   const t = useTranslations('careType')
+  const locale = useLocale()
 
   return (
     <div className="px-4 py-6">
@@ -26,7 +27,7 @@ export function CareTypeSelectionClient({ careTypes }: { careTypes: CareType[] }
             icon={ct.icon}
             name={ct.name}
             description={ct.description}
-            onClick={() => router.push(`triage?careType=${ct.id}`)}
+            onClick={() => router.push(`/${locale}/triage?careType=${ct.id}`)}
           />
         ))}
       </div>

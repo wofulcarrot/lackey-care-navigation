@@ -1,10 +1,13 @@
-'use client'
-
-import { useTranslations } from 'next-intl'
+import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 
-export default function LandingPage() {
-  const t = useTranslations('landing')
+export default async function LandingPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  const t = await getTranslations('landing')
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
@@ -13,14 +16,14 @@ export default function LandingPage() {
 
       <div className="flex flex-col gap-4 w-full max-w-sm">
         <Link
-          href="emergency"
+          href={`/${locale}/emergency`}
           className="block w-full bg-blue-600 text-white text-center py-4 rounded-xl text-xl font-bold min-h-[48px]"
         >
           {t('getCareNow')}
         </Link>
 
         <Link
-          href="virtual-care"
+          href={`/${locale}/virtual-care`}
           className="block w-full bg-green-600 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]"
         >
           {t('virtualCare')}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { EmergencyAlert } from '@/components/EmergencyAlert'
 
@@ -14,6 +14,7 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [showAlert, setShowAlert] = useState(false)
   const t = useTranslations('emergency')
+  const locale = useLocale()
   const router = useRouter()
 
   function toggle(id: string) {
@@ -27,11 +28,11 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
     if (checked.size > 0) {
       setShowAlert(true)
     } else {
-      router.push('care-type')
+      router.push(`/${locale}/care-type`)
     }
   }
 
-  if (showAlert) return <EmergencyAlert />
+  if (showAlert) return <EmergencyAlert onDismiss={() => setShowAlert(false)} />
 
   return (
     <div className="px-4 py-6">
@@ -41,6 +42,7 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
           <button
             key={s.id}
             onClick={() => toggle(s.id)}
+            aria-pressed={checked.has(s.id)}
             className={`w-full text-left p-4 rounded-xl border-2 text-lg min-h-[48px] transition ${
               checked.has(s.id)
                 ? 'border-red-600 bg-red-50 font-bold'
