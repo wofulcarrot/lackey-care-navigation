@@ -83,6 +83,7 @@ export function TriageClient({
         </button>
       )}
       <QuestionCard
+        key={triage.currentQuestion.id}
         text={triage.currentQuestion.text}
         helpText={triage.currentQuestion.helpText}
         type={triage.currentQuestion.type}
