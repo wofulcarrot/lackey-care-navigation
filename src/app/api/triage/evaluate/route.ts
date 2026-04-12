@@ -8,9 +8,26 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { careTypeId, answers, locale = 'en', device = 'mobile' } = body
 
+    const validLocales = ['en', 'es'] as const
+    const validDevices = ['mobile', 'tablet', 'desktop'] as const
+    const safeLocale = validLocales.includes(locale as any) ? locale : 'en'
+    const safeDevice = validDevices.includes(device as any) ? device : 'mobile'
+
     if (!careTypeId || !Array.isArray(answers)) {
       return NextResponse.json(
         { error: 'careTypeId and answers[] are required' },
+        { status: 400 },
+      )
+    }
+
+    const validAnswers = answers.every(
+      (a: unknown) =>
+        typeof a === 'object' && a !== null &&
+        typeof (a as Record<string, unknown>).urgencyWeight === 'number',
+    )
+    if (!validAnswers) {
+      return NextResponse.json(
+        { error: 'Each answer must include a numeric urgencyWeight' },
         { status: 400 },
       )
     }
@@ -33,7 +50,7 @@ export async function POST(request: Request) {
       collection: 'urgency-levels',
       sort: '-scoreThreshold',
       limit: 100,
-      locale,
+      locale: safeLocale,
     })
     const urgencyLevel = classifyUrgency(score, urgencyLevelsResult.docs.map((d) => ({
       id: String(d.id),
@@ -60,7 +77,7 @@ export async function POST(request: Request) {
           { urgencyLevel: { equals: urgencyLevel.id } },
         ],
       },
-      locale,
+      locale: safeLocale,
       depth: 2,
     })
 
@@ -68,7 +85,7 @@ export async function POST(request: Request) {
 
     if (!rule) {
       // Fallback: no routing rule found
-      const staticContent = await payload.findGlobal({ slug: 'static-content', locale })
+      const staticContent = await payload.findGlobal({ slug: 'static-content', locale: safeLocale })
       return NextResponse.json({
         escalate: false,
         urgencyLevel,
@@ -94,8 +111,8 @@ export async function POST(request: Request) {
         virtualCareOffered: rule.virtualCareEligible ?? false,
         emergencyScreenTriggered: false,
         completedFlow: true,
-        locale,
-        device,
+        locale: safeLocale,
+        device: safeDevice,
         questionSetVersion: body.questionSetVersion ?? null,
       },
     }).catch(() => {}) // Fire-and-forget: never block patient flow
