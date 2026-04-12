@@ -5,9 +5,10 @@ import { useTranslations } from 'next-intl'
 interface ErrorFallbackProps {
   clinicPhone?: string
   virtualCareUrl?: string
+  onRetry?: () => void
 }
 
-export function ErrorFallback({ clinicPhone, virtualCareUrl }: ErrorFallbackProps) {
+export function ErrorFallback({ clinicPhone, virtualCareUrl, onRetry }: ErrorFallbackProps) {
   const t = useTranslations('common')
   const tResults = useTranslations('results')
   return (
@@ -23,6 +24,14 @@ export function ErrorFallback({ clinicPhone, virtualCareUrl }: ErrorFallbackProp
           <a href={virtualCareUrl} target="_blank" rel="noopener noreferrer" className="block w-full bg-green-600 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]">
             {t('startVirtualVisit')}
           </a>
+        )}
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="block w-full bg-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
+          >
+            {tResults('startOver')}
+          </button>
         )}
       </div>
     </div>
