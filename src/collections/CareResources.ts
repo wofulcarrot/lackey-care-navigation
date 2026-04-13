@@ -24,6 +24,8 @@ export const CareResources: CollectionConfig = {
         { label: 'Pharmacy', value: 'pharmacy' },
         { label: 'Social Services', value: 'social_services' },
         { label: 'Crisis Line', value: 'crisis_line' },
+        { label: 'Behavioral Health', value: 'behavioral_health' },
+        { label: 'Health Department', value: 'health_department' },
       ],
     },
     {

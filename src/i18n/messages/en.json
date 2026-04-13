@@ -34,6 +34,14 @@
     "startOver": "Start over",
     "temporaryNotice": "Notice"
   },
+  "disclaimers": {
+    "heading": "Important Information",
+    "notEmergency": "This is not a replacement for emergency services. If you are experiencing a medical emergency, call 911.",
+    "notEligibility": "This tool does not determine insurance eligibility or enrollment.",
+    "noAppointmentGuarantee": "Appointment availability is not guaranteed and depends on provider capacity.",
+    "noSeriousMentalIllness": "This service is not intended for serious mental illness crises. Call the crisis line at (757) 664-6000.",
+    "noControlledSubstances": "Controlled substances will not be prescribed through virtual care visits."
+  },
   "common": {
     "privacy": "We don't collect personal information.",
     "poweredBy": "Powered by Lackey Clinic",

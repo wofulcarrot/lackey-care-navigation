@@ -524,7 +524,7 @@ export const StaticContent: GlobalConfig = {
     { name: 'heroTitle', type: 'text', required: true, localized: true },
     { name: 'heroSubtitle', type: 'text', localized: true },
     { name: 'virtualCareUrl', type: 'text', required: true,
-      admin: { description: 'Fabric intake URL for Virtual Care handoff' } },
+      admin: { description: 'Virtual Care intake URL (configured by Traverse)' } },
     { name: 'virtualCareHeading', type: 'text', localized: true },
     { name: 'virtualCareBullets', type: 'array', fields: [
       { name: 'text', type: 'text', required: true, localized: true },

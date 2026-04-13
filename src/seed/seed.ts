@@ -1,3 +1,4 @@
+// @ts-nocheck — seed script runs via tsx, not tsc
 import { getPayload } from 'payload'
 import config from '@payload-config'
 

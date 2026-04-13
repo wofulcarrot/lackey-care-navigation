@@ -17,7 +17,7 @@ A patient-facing care navigation web app that guides uninsured adults (18+) in N
 | Deployment | Standalone web app (e.g., `care.lackeyhealthcare.org`) |
 | Resource management | CMS — Lackey staff manage resources directly |
 | Primary user | Mobile-first, low-literacy friendly, bilingual EN/ES from day one |
-| Virtual Care integration | Interstitial + redirect handoff to Fabric |
+| Virtual Care integration | Interstitial + redirect handoff to Lackey Virtual Care |
 | Eligibility intake | Link to JotForm now, architected to swap to DataCare 2.0 |
 | Triage logic | Rule-based decision tree, CMS-configurable, deterministic and auditable |
 | Architecture | Next.js + Payload CMS (embedded) + PostgreSQL |
@@ -51,7 +51,7 @@ Single Next.js application deployed on Vercel containing three subsystems:
 - Payload manages schema via Drizzle ORM
 
 ### 1.5 External Handoffs
-- Fabric (Virtual Care): redirect in new tab
+- Lackey Virtual Care: redirect in new tab
 - JotForm / DataCare 2.0: configurable link in CMS
 - No Epic/EHR integration (avoids HIPAA scope)
 - No patient accounts or PII storage
@@ -233,7 +233,7 @@ Payload built-in auth with roles: `admin` (full access) and `editor` (resources 
 - Shown when RoutingRule has `virtualCareEligible: true`
 - Content: "You may be able to get free care right now"
 - Bullet points: Free for adults 18+, Available 24/7, No insurance needed, 95% handled fully online, Private and secure
-- Primary CTA: "Start Free Virtual Visit" → opens Fabric in new tab
+- Primary CTA: "Start Free Virtual Visit" → opens Lackey Virtual Care in new tab
 - Secondary: "Show me other options" → continues to results
 
 **Final Screen — Results**
@@ -294,13 +294,13 @@ Payload's built-in localization provides side-by-side EN/ES fields on every text
 
 ## 5. Integrations & External Handoffs
 
-### 5.1 Lackey Virtual Care → Fabric
+### 5.1 Lackey Virtual Care (built by Traverse)
 - **Type:** Redirect handoff
 - **Trigger:** Patient clicks "Start Free Virtual Visit" on interstitial
-- **Action:** `window.open(fabricUrl)` — opens Fabric intake in new tab
-- **URL:** Configurable in CMS (StaticContent). No code change if Fabric URL changes.
-- **Locale:** Append `?lang=es` if Fabric supports it
-- **No PII passed.** Fabric handles its own intake.
+- **Action:** `window.open(virtualCareUrl)` — opens Virtual Care intake in new tab
+- **URL:** Configurable in CMS (StaticContent). No code change if the URL changes.
+- **Locale:** Append `?lang=es` if the Virtual Care platform supports it
+- **No PII passed.** Virtual Care handles its own intake.
 
 ### 5.2 Eligibility Intake → JotForm (now) → DataCare 2.0 (later)
 - **Type:** Configurable link ("The Seam")
