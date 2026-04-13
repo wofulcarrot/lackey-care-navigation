@@ -2,9 +2,20 @@ import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { calculateScore, classifyUrgency, checkEscalation } from '@/lib/triage-engine'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
   try {
+    const forwarded = request.headers.get('x-forwarded-for')
+    const ip = forwarded?.split(',')[0]?.trim() ?? '127.0.0.1'
+    const { allowed, remaining } = rateLimit(ip)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again in a minute.' },
+        { status: 429, headers: { 'Retry-After': '60', 'X-RateLimit-Remaining': '0' } },
+      )
+    }
+
     const body = await request.json()
     const { careTypeId, answers, locale = 'en', device = 'mobile' } = body
 

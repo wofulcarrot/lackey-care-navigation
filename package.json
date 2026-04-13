@@ -42,6 +42,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "docx": "^9.6.1",
     "playwright": "^1.59.1",
     "postcss": "^8.5.9",
     "tailwindcss": "^4.2.2",
