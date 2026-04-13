@@ -25,6 +25,14 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      views: {
+        analytics: {
+          Component: './views/AnalyticsDashboard#AnalyticsDashboard',
+          path: '/analytics',
+        },
+      },
+    },
   },
   collections: [
     Users,

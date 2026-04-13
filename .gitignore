@@ -4,3 +4,6 @@ node_modules/
 .next/
 .superpowers/
 next-env.d.ts
+src/payload-types.ts
+test-results/
+playwright-report/

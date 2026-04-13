@@ -5,6 +5,21 @@ export async function createQuestionSets(
   careTypes: Record<string, string>,
 ) {
   // === MEDICAL QUESTIONS ===
+  // Create medQ3 first so medQ1 "Severe" answer can branch to it via nextQuestion
+  const medQ3 = await payload.create({
+    collection: 'questions',
+    data: {
+      text: 'Do you have a fever (temperature above 100.4°F)?',
+      type: 'yes_no',
+      sortOrder: 3,
+      answers: [
+        { label: 'Yes', urgencyWeight: 4, escalateImmediately: false },
+        { label: 'No', urgencyWeight: 0, escalateImmediately: false },
+        { label: 'I\'m not sure', urgencyWeight: 2, escalateImmediately: false },
+      ],
+    },
+  })
+
   const medQ1 = await payload.create({
     collection: 'questions',
     data: {
@@ -13,7 +28,8 @@ export async function createQuestionSets(
       type: 'single_choice',
       sortOrder: 1,
       answers: [
-        { label: 'Severe — I can\'t function', urgencyWeight: 8, escalateImmediately: false },
+        // "Severe" branches directly to fever question, skipping duration
+        { label: 'Severe — I can\'t function', urgencyWeight: 8, escalateImmediately: false, nextQuestion: medQ3.id },
         { label: 'Moderate — It\'s hard to focus', urgencyWeight: 5, escalateImmediately: false },
         { label: 'Mild — It\'s uncomfortable but manageable', urgencyWeight: 2, escalateImmediately: false },
         { label: 'No pain', urgencyWeight: 0, escalateImmediately: false },
@@ -32,20 +48,6 @@ export async function createQuestionSets(
         { label: 'A few days', urgencyWeight: 3, escalateImmediately: false },
         { label: 'About a week', urgencyWeight: 2, escalateImmediately: false },
         { label: 'More than a week', urgencyWeight: 1, escalateImmediately: false },
-      ],
-    },
-  })
-
-  const medQ3 = await payload.create({
-    collection: 'questions',
-    data: {
-      text: 'Do you have a fever (temperature above 100.4°F)?',
-      type: 'yes_no',
-      sortOrder: 3,
-      answers: [
-        { label: 'Yes', urgencyWeight: 4, escalateImmediately: false },
-        { label: 'No', urgencyWeight: 0, escalateImmediately: false },
-        { label: 'I\'m not sure', urgencyWeight: 2, escalateImmediately: false },
       ],
     },
   })

@@ -36,13 +36,21 @@ export async function createRoutingRules(
   ]
 
   for (const rule of rules) {
-    if (!careTypes[rule.careType] || !levels[rule.urgency]) continue
+    if (!careTypes[rule.careType] || !levels[rule.urgency]) {
+      console.warn(`  ⚠ Skipping routing rule: missing careType="${rule.careType}" or urgency="${rule.urgency}"`)
+      continue
+    }
+    const resolvedResources = rule.resources.map((name) => resources[name])
+    const missing = rule.resources.filter((name) => !resources[name])
+    if (missing.length) {
+      console.warn(`  ⚠ Missing resource(s) for ${rule.careType}/${rule.urgency}: ${missing.join(', ')}`)
+    }
     await payload.create({
       collection: 'routing-rules',
       data: {
         careType: careTypes[rule.careType],
         urgencyLevel: levels[rule.urgency],
-        resources: rule.resources.map((name) => resources[name]).filter(Boolean),
+        resources: resolvedResources.filter(Boolean),
         virtualCareEligible: rule.vcEligible,
         actionText: rule.action,
       },
