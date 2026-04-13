@@ -56,8 +56,8 @@ export function TriageClient({
     })
       .then((r) => r.json())
       .then((data) => {
-        const encoded = encodeURIComponent(JSON.stringify(data))
-        router.push(`/${locale}/results?data=${encoded}`)
+        sessionStorage.setItem('triageResult', JSON.stringify(data))
+        router.push(`/${locale}/results`)
       })
       .catch(() => {
         router.push(`/${locale}/results?fallback=true`)

@@ -11,6 +11,36 @@ export const RoutingRules: CollectionConfig = {
     update: ({ req }) => req.user?.role === 'admin',
     delete: ({ req }) => req.user?.role === 'admin',
   },
+  hooks: {
+    beforeValidate: [
+      async ({ data, req, operation, originalDoc }) => {
+        if (operation === 'create' || operation === 'update') {
+          const careType = data?.careType
+          const urgencyLevel = data?.urgencyLevel
+          if (!careType || !urgencyLevel) return data
+
+          const existing = await req.payload.find({
+            collection: 'routing-rules',
+            where: {
+              and: [
+                { careType: { equals: careType } },
+                { urgencyLevel: { equals: urgencyLevel } },
+              ],
+            },
+            limit: 1,
+          })
+
+          const isDuplicate = existing.docs.length > 0 &&
+            (operation === 'create' || existing.docs[0].id !== originalDoc?.id)
+
+          if (isDuplicate) {
+            throw new Error('A routing rule for this Care Type and Urgency Level combination already exists.')
+          }
+        }
+        return data
+      },
+    ],
+  },
   fields: [
     { name: 'careType', type: 'relationship', relationTo: 'care-types', required: true, index: true },
     { name: 'urgencyLevel', type: 'relationship', relationTo: 'urgency-levels', required: true, index: true },

@@ -100,7 +100,7 @@ export function useTriage(questions: Question[]) {
 
   return {
     currentQuestion,
-    questionNumber: state.currentQuestionIndex + 1,
+    questionNumber: state.selectedAnswers.length + 1,
     totalQuestions: sorted.length,
     totalScore: state.totalScore,
     escalated: state.escalated,

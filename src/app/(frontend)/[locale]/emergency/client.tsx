@@ -28,6 +28,7 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
     if (checked.size > 0) {
       setShowAlert(true)
     } else {
+      sessionStorage.setItem('emergencyScreenCompleted', 'true')
       router.push(`/${locale}/care-type`)
     }
   }

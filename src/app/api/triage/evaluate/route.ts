@@ -126,7 +126,7 @@ export async function POST(request: Request) {
         device: safeDevice,
         questionSetVersion: body.questionSetVersion ?? null,
       },
-    }).catch(() => {}) // Fire-and-forget: never block patient flow
+    }).catch((err) => console.error('[triage-session] Failed to log session:', err.message))
 
     return NextResponse.json({
       escalate: false,

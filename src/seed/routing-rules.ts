@@ -1,4 +1,3 @@
-// @ts-nocheck — seed script runs via tsx, not tsc
 import type { Payload } from 'payload'
 
 export async function createRoutingRules(

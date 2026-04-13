@@ -8,6 +8,34 @@ import { ResourceCard } from '@/components/ResourceCard'
 import { VirtualCareInterstitial } from '@/components/VirtualCareInterstitial'
 import { ErrorFallback } from '@/components/ErrorFallback'
 
+interface TriageResource {
+  id: string
+  name: string
+  type: string
+  address?: string
+  phone?: string
+  hours?: string
+  cost?: string
+  eligibility?: string
+  temporaryNotice?: string
+}
+
+interface TriageResult {
+  escalate: boolean
+  urgencyLevel?: {
+    id: string
+    name: string
+    color: string
+    scoreThreshold: number
+    timeToCare?: string
+  }
+  resources: TriageResource[]
+  virtualCareEligible?: boolean
+  actionText?: string
+  nextSteps?: string
+  fallback?: boolean
+}
+
 interface Props {
   clinicPhone: string
   virtualCareUrl: string
@@ -28,10 +56,18 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
     return <ErrorFallback clinicPhone={clinicPhone} virtualCareUrl={virtualCareUrl} />
   }
 
-  let data: any = null
+  let data: TriageResult | null = null
   try {
-    data = JSON.parse(decodeURIComponent(searchParams.get('data') ?? '{}'))
+    const stored = sessionStorage.getItem('triageResult')
+    if (stored) {
+      data = JSON.parse(stored) as TriageResult
+      sessionStorage.removeItem('triageResult')
+    }
   } catch {
+    return <ErrorFallback clinicPhone={clinicPhone} virtualCareUrl={virtualCareUrl} />
+  }
+
+  if (!data) {
     return <ErrorFallback clinicPhone={clinicPhone} virtualCareUrl={virtualCareUrl} />
   }
 
@@ -71,7 +107,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
       )}
 
       <div className="flex flex-col gap-4 mb-8">
-        {resources.map((r: any, i: number) => (
+        {resources.map((r: TriageResource, i: number) => (
           <ResourceCard key={r.id ?? i} resource={r} />
         ))}
       </div>
