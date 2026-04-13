@@ -49,7 +49,7 @@ export function QuestionCard({
 
   return (
     <div className="px-4 py-6">
-      <h2 className="text-2xl font-bold mb-2">{text}</h2>
+      <h2 id="question-text" className="text-2xl font-bold mb-2">{text}</h2>
       {helpText && (
         <button
           onClick={() => setShowHelp(!showHelp)}
@@ -63,10 +63,12 @@ export function QuestionCard({
           {helpText}
         </p>
       )}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3" role={type === 'multi_choice' ? 'group' : 'radiogroup'} aria-labelledby="question-text">
         {answers.map((a, i) => (
           <button
             key={i}
+            role={type === 'multi_choice' ? 'checkbox' : 'radio'}
+            aria-checked={selected.has(i)}
             onClick={() => handleSelect(i)}
             className={`w-full text-left p-4 rounded-xl border-2 text-lg min-h-[48px] transition ${
               selected.has(i)

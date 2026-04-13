@@ -1,5 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { redirect } from 'next/navigation'
+import { ErrorFallback } from '@/components/ErrorFallback'
 import { TriageClient } from './client'
 
 export default async function TriagePage({
@@ -11,7 +13,7 @@ export default async function TriagePage({
 }) {
   const { locale } = await params
   const { careType: careTypeId } = await searchParams
-  if (!careTypeId) return <div>Missing care type</div>
+  if (!careTypeId) return <ErrorFallback />
 
   const payload = await getPayload({ config })
 
@@ -31,7 +33,7 @@ export default async function TriagePage({
   const questionSet = questionSets.docs[0]
 
   if (!questionSet || !questionSet.questions?.length) {
-    return <div>Redirecting to results...</div>
+    redirect(`/${locale}/results?fallback=true`)
   }
 
   return (

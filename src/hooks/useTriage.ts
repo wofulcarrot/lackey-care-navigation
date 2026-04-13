@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 
 interface Question {
   id: string
@@ -30,7 +30,7 @@ interface TriageState {
 }
 
 export function useTriage(questions: Question[]) {
-  const sorted = [...questions].sort((a, b) => a.sortOrder - b.sortOrder)
+  const sorted = useMemo(() => [...questions].sort((a, b) => a.sortOrder - b.sortOrder), [questions])
   const [state, setState] = useState<TriageState>({
     currentQuestionIndex: 0,
     selectedAnswers: [],
@@ -42,69 +42,61 @@ export function useTriage(questions: Question[]) {
 
   const currentQuestion = sorted[state.currentQuestionIndex] ?? null
 
-  const submitAnswer = useCallback(
-    (answers: Answer[]) => {
-      if (answers.some((a) => a.escalateImmediately)) {
-        setState((prev) => ({ ...prev, escalated: true }))
-        return
-      }
+  const submitAnswer = useCallback((answers: Answer[]) => {
+    if (answers.some((a) => a.escalateImmediately)) {
+      setState((prev) => ({ ...prev, escalated: true }))
+      return
+    }
 
-      const redirect = answers.find((a) => a.redirectToCareType)
-      if (redirect?.redirectToCareType) {
-        setState((prev) => ({
-          ...prev,
-          redirectCareType: redirect.redirectToCareType!,
-        }))
-        return
-      }
+    const redirect = answers.find((a) => a.redirectToCareType)
+    if (redirect?.redirectToCareType) {
+      setState((prev) => ({ ...prev, redirectCareType: redirect.redirectToCareType! }))
+      return
+    }
 
+    setState((prev) => {
       const scoreAdd = answers.reduce((sum, a) => sum + a.urgencyWeight, 0)
-      const currentQ = sorted[state.currentQuestionIndex]
+      const currentQ = sorted[prev.currentQuestionIndex]
 
       const branchTarget = answers.length === 1 ? answers[0].nextQuestion : null
       let nextIndex: number
 
       if (branchTarget) {
         nextIndex = sorted.findIndex((q) => q.id === branchTarget)
-        if (nextIndex === -1) nextIndex = state.currentQuestionIndex + 1
+        if (nextIndex === -1) nextIndex = prev.currentQuestionIndex + 1
       } else {
-        nextIndex = state.currentQuestionIndex + 1
+        nextIndex = prev.currentQuestionIndex + 1
       }
 
       const completed = nextIndex >= sorted.length
 
-      setState((prev) => ({
+      return {
         ...prev,
         currentQuestionIndex: nextIndex,
-        selectedAnswers: [
-          ...prev.selectedAnswers,
-          { questionId: currentQ.id, answers },
-        ],
+        selectedAnswers: [...prev.selectedAnswers, { questionId: currentQ.id, answers }],
         totalScore: prev.totalScore + scoreAdd,
         completed,
-      }))
-    },
-    [state.currentQuestionIndex, sorted],
-  )
+      }
+    })
+  }, [sorted])
 
   const goBack = useCallback(() => {
-    if (state.selectedAnswers.length === 0) return
-    const prev = state.selectedAnswers.slice(0, -1)
-    const lastAnswer = state.selectedAnswers[state.selectedAnswers.length - 1]
-    const scoreRemove = lastAnswer.answers.reduce(
-      (sum, a) => sum + a.urgencyWeight,
-      0,
-    )
-    const prevIndex = sorted.findIndex((q) => q.id === lastAnswer.questionId)
+    setState((prev) => {
+      if (prev.selectedAnswers.length === 0) return prev
+      const newAnswers = prev.selectedAnswers.slice(0, -1)
+      const lastAnswer = prev.selectedAnswers[prev.selectedAnswers.length - 1]
+      const scoreRemove = lastAnswer.answers.reduce((sum, a) => sum + a.urgencyWeight, 0)
+      const prevIndex = sorted.findIndex((q) => q.id === lastAnswer.questionId)
 
-    setState((s) => ({
-      ...s,
-      currentQuestionIndex: prevIndex >= 0 ? prevIndex : s.currentQuestionIndex - 1,
-      selectedAnswers: prev,
-      totalScore: s.totalScore - scoreRemove,
-      completed: false,
-    }))
-  }, [state.selectedAnswers, sorted])
+      return {
+        ...prev,
+        currentQuestionIndex: prevIndex >= 0 ? prevIndex : prev.currentQuestionIndex - 1,
+        selectedAnswers: newAnswers,
+        totalScore: prev.totalScore - scoreRemove,
+        completed: false,
+      }
+    })
+  }, [sorted])
 
   return {
     currentQuestion,

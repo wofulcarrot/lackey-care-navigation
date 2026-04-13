@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
+import DOMPurify from 'dompurify'
 import { ResourceCard } from '@/components/ResourceCard'
 import { VirtualCareInterstitial } from '@/components/VirtualCareInterstitial'
 import { ErrorFallback } from '@/components/ErrorFallback'
@@ -76,7 +77,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
       </div>
 
       {data.nextSteps && (
-        <div className="prose mb-8" dangerouslySetInnerHTML={{ __html: data.nextSteps }} />
+        <div className="prose mb-8" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data.nextSteps) }} />
       )}
 
       <div className="flex flex-col gap-4">

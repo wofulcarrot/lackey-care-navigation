@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTriage } from '@/hooks/useTriage'
 import { QuestionCard } from '@/components/QuestionCard'
 import { ProgressBar } from '@/components/ProgressBar'
@@ -23,6 +23,7 @@ export function TriageClient({
   const locale = useLocale()
   const t = useTranslations('triage')
   const triage = useTriage(questions)
+  const hasSubmittedRef = useRef(false)
 
   // Handle meta-redirect
   useEffect(() => {
@@ -33,33 +34,34 @@ export function TriageClient({
 
   // Handle completion — POST to API and navigate to results
   useEffect(() => {
-    if (triage.completed) {
-      const answers = triage.selectedAnswers.flatMap((sa) =>
-        sa.answers.map((a) => ({
-          answerId: a.id ?? '',
-          urgencyWeight: a.urgencyWeight,
-          escalateImmediately: a.escalateImmediately,
-        })),
-      )
-      fetch('/api/triage/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          careTypeId,
-          answers,
-          locale,
-          questionSetVersion,
-        }),
+    if (!triage.completed || hasSubmittedRef.current) return
+    hasSubmittedRef.current = true
+
+    const answers = triage.selectedAnswers.flatMap((sa) =>
+      sa.answers.map((a) => ({
+        answerId: a.id ?? '',
+        urgencyWeight: a.urgencyWeight,
+        escalateImmediately: a.escalateImmediately,
+      })),
+    )
+    fetch('/api/triage/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        careTypeId,
+        answers,
+        locale,
+        questionSetVersion,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const encoded = encodeURIComponent(JSON.stringify(data))
+        router.push(`/${locale}/results?data=${encoded}`)
       })
-        .then((r) => r.json())
-        .then((data) => {
-          const encoded = encodeURIComponent(JSON.stringify(data))
-          router.push(`/${locale}/results?data=${encoded}`)
-        })
-        .catch(() => {
-          router.push(`/${locale}/results?fallback=true`)
-        })
-    }
+      .catch(() => {
+        router.push(`/${locale}/results?fallback=true`)
+      })
   }, [triage.completed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Early returns AFTER all hooks (React rules of hooks)
