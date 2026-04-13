@@ -2,9 +2,9 @@ import type { Payload } from 'payload'
 
 export async function createRoutingRules(
   payload: Payload,
-  careTypes: Record<string, string>,
-  levels: Record<string, string>,
-  resources: Record<string, string>,
+  careTypes: Record<string, number | string>,
+  levels: Record<string, number | string>,
+  resources: Record<string, number | string>,
 ) {
   const rules = [
     // Medical + Life-Threatening/Emergent → ER

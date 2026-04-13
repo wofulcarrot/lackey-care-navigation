@@ -2,7 +2,7 @@ import type { Payload } from 'payload'
 
 export async function createQuestionSets(
   payload: Payload,
-  careTypes: Record<string, string>,
+  careTypes: Record<string, number | string>,
 ) {
   // === MEDICAL QUESTIONS ===
   // Create medQ3 first so medQ1 "Severe" answer can branch to it via nextQuestion

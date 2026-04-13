@@ -19,24 +19,24 @@ async function seed() {
     }
 
     console.log('Seeding care types...')
-    const createdCareTypes: Record<string, string> = {}
+    const createdCareTypes: Record<string, number | string> = {}
     for (const ct of careTypes) {
       const created = await payload.create({ collection: 'care-types', data: ct })
-      createdCareTypes[ct.name] = String(created.id)
+      createdCareTypes[ct.name] = created.id
     }
 
     console.log('Seeding urgency levels...')
-    const createdLevels: Record<string, string> = {}
+    const createdLevels: Record<string, number | string> = {}
     for (const level of urgencyLevels) {
       const created = await payload.create({ collection: 'urgency-levels', data: level })
-      createdLevels[level.name] = String(created.id)
+      createdLevels[level.name] = created.id
     }
 
     console.log('Seeding care resources...')
-    const createdResources: Record<string, string> = {}
+    const createdResources: Record<string, number | string> = {}
     for (const resource of careResources) {
       const created = await payload.create({ collection: 'care-resources', data: resource })
-      createdResources[resource.name] = String(created.id)
+      createdResources[resource.name] = created.id
     }
 
     console.log('Seeding question sets...')
