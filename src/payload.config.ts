@@ -26,8 +26,17 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: {
+      titleSuffix: ' — Lackey CMS',
+      defaultOGImageType: 'off',
+    },
     components: {
       views: {
+        // Replace Payload's default home with a task-oriented Lackey dashboard.
+        dashboard: {
+          Component: './views/AdminDashboard#AdminDashboard',
+        },
+        // Keep the existing analytics view at /admin/analytics
         analytics: {
           Component: './views/AnalyticsDashboard#AnalyticsDashboard',
           path: '/analytics',
@@ -36,15 +45,20 @@ export default buildConfig({
     },
   },
   collections: [
-    Users,
+    // Collections are grouped via each collection's admin.group:
+    //   "Content"       — CareResources, EmergencySymptoms (Editors can update)
+    //   "Triage Logic"  — CareTypes, Questions, QuestionSets, RoutingRules, UrgencyLevels (Admins only)
+    //   "Analytics"     — TriageSessions (read-only)
+    //   "System"        — Users
+    CareResources,
+    EmergencySymptoms,
     CareTypes,
-    UrgencyLevels,
     Questions,
     QuestionSets,
-    CareResources,
     RoutingRules,
-    EmergencySymptoms,
+    UrgencyLevels,
     TriageSessions,
+    Users,
   ],
   globals: [StaticContent],
   db: process.env.DATABASE_URI?.startsWith('postgres')

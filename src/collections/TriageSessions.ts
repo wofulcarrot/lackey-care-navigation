@@ -2,9 +2,15 @@ import type { CollectionConfig } from 'payload'
 
 export const TriageSessions: CollectionConfig = {
   slug: 'triage-sessions',
+  labels: { singular: 'Triage Session', plural: 'Triage Sessions' },
   admin: {
-    description: 'Anonymous analytics. Zero PII.',
+    useAsTitle: 'sessionId',
+    defaultColumns: ['sessionId', 'careTypeSelected', 'urgencyResult', 'completedFlow', 'locale', 'device', 'createdAt'],
+    group: 'Analytics',
+    description: '⚠ Read-only. Anonymous analytics — zero PII. Rows are created automatically when patients complete triage.',
+    pagination: { defaultLimit: 50 },
   },
+  defaultSort: '-createdAt',
   access: {
     read: ({ req }) => Boolean(req.user),
     create: () => true,

@@ -1,0 +1,68 @@
+/**
+ * Custom admin panel styles for Lackey Care Navigation.
+ * Applied on top of @payloadcms/ui/scss/app.scss.
+ */
+
+// Lackey brand colors
+:root {
+  --theme-elevation-0: #ffffff;
+  --theme-elevation-50: #f8fafc;
+  --theme-elevation-100: #f1f5f9;
+
+  // Primary brand (deep teal/blue, healthcare-friendly)
+  --theme-success-500: #1B4F72;
+
+  // Accent for buttons and links
+  --theme-primary-500: #1B4F72;
+  --theme-primary-600: #174461;
+}
+
+// Sharper, more professional nav group headers
+.nav__label {
+  text-transform: uppercase;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  color: var(--theme-elevation-500) !important;
+  padding-top: 20px !important;
+  padding-bottom: 8px !important;
+}
+
+// Slightly more generous list cell padding for readability
+.row-label,
+.collection-list__cell {
+  line-height: 1.5;
+}
+
+// Make the dashboard description text look less technical
+.view-description,
+.collection-description,
+.global-description {
+  color: var(--theme-elevation-500);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 780px;
+}
+
+// Cleaner tab styling on CareResources / StaticContent
+.tabs-field__tabs-wrap {
+  border-bottom: 1px solid var(--theme-elevation-100);
+  margin-bottom: 20px;
+}
+
+.tabs-field__tab-button {
+  padding: 10px 16px !important;
+  font-weight: 500;
+}
+
+.tabs-field__tab-button--active {
+  color: #1B4F72 !important;
+  border-bottom-color: #1B4F72 !important;
+}
+
+// Subtle card shadow on group fields for visual separation
+.group-field__wrap {
+  background: var(--theme-elevation-50);
+  border-radius: 8px;
+  padding: 16px;
+}
