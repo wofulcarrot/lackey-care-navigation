@@ -1,68 +1,535 @@
 /**
- * Custom admin panel styles for Lackey Care Navigation.
- * Applied on top of @payloadcms/ui/scss/app.scss.
+ * Lackey Care Navigation — Desktop-first admin theme
+ * Layered on top of @payloadcms/ui/scss/app.scss
+ *
+ * Design goals:
+ *   1. Desktop-first: wide content, generous spacing, readable typography
+ *   2. Healthcare-professional palette: deep teal primary, warm neutrals
+ *   3. Card-based UI with subtle shadows and hover states
+ *   4. Clear visual hierarchy: bold titles, structured groups, distinct nav
  */
 
-// Lackey brand colors
-:root {
-  --theme-elevation-0: #ffffff;
-  --theme-elevation-50: #f8fafc;
-  --theme-elevation-100: #f1f5f9;
+@layer payload {
+  :root {
+    /* ========================================================== */
+    /* BRAND PALETTE — Lackey deep teal as the primary accent      */
+    /* Payload treats --theme-success-500 as the primary color;   */
+    /* we remap the whole "success" scale to our brand.            */
+    /* ========================================================== */
+    --color-success-50:  rgb(240, 247, 250);
+    --color-success-100: rgb(222, 237, 245);
+    --color-success-150: rgb(197, 223, 236);
+    --color-success-200: rgb(169, 207, 225);
+    --color-success-250: rgb(139, 189, 212);
+    --color-success-300: rgb(108, 170, 197);
+    --color-success-350: rgb(79, 150, 180);
+    --color-success-400: rgb(54, 131, 162);
+    --color-success-450: rgb(40, 114, 144);
+    --color-success-500: rgb(27, 79, 114);  /* Lackey deep teal — primary brand */
+    --color-success-550: rgb(23, 68, 99);
+    --color-success-600: rgb(20, 58, 85);
+    --color-success-650: rgb(17, 48, 71);
+    --color-success-700: rgb(14, 40, 59);
+    --color-success-750: rgb(12, 33, 49);
+    --color-success-800: rgb(10, 26, 40);
+    --color-success-850: rgb(8, 21, 32);
+    --color-success-900: rgb(6, 16, 24);
+    --color-success-950: rgb(4, 11, 17);
 
-  // Primary brand (deep teal/blue, healthcare-friendly)
-  --theme-success-500: #1B4F72;
+    /* ========================================================== */
+    /* WARM NEUTRAL SCALE — replaces Payload's cool gray            */
+    /* ========================================================== */
+    --color-base-0:   rgb(255, 255, 255);
+    --color-base-50:  rgb(250, 250, 249);
+    --color-base-100: rgb(244, 244, 242);
+    --color-base-150: rgb(232, 232, 229);
+    --color-base-200: rgb(217, 217, 213);
+    --color-base-250: rgb(202, 202, 197);
+    --color-base-300: rgb(186, 186, 180);
+    --color-base-350: rgb(169, 169, 163);
+    --color-base-400: rgb(151, 151, 144);
+    --color-base-450: rgb(132, 132, 125);
+    --color-base-500: rgb(113, 113, 106);
+    --color-base-550: rgb(95, 95, 88);
+    --color-base-600: rgb(78, 78, 72);
+    --color-base-650: rgb(64, 64, 59);
+    --color-base-700: rgb(51, 51, 47);
+    --color-base-750: rgb(41, 41, 38);
+    --color-base-800: rgb(32, 32, 30);
+    --color-base-850: rgb(24, 24, 22);
+    --color-base-900: rgb(17, 17, 16);
 
-  // Accent for buttons and links
-  --theme-primary-500: #1B4F72;
-  --theme-primary-600: #174461;
-}
+    /* ========================================================== */
+    /* TYPOGRAPHY — larger base size for comfortable desktop read  */
+    /* Payload default is 13px; we lift to 14px everywhere.        */
+    /* ========================================================== */
+    --base-body-size: 14px;
 
-// Sharper, more professional nav group headers
-.nav__label {
-  text-transform: uppercase;
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.06em !important;
-  color: var(--theme-elevation-500) !important;
-  padding-top: 20px !important;
-  padding-bottom: 8px !important;
-}
+    /* ========================================================== */
+    /* SHADOWS — softer, more modern                                */
+    /* ========================================================== */
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
+    --shadow-md: 0 2px 4px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  }
 
-// Slightly more generous list cell padding for readability
-.row-label,
-.collection-list__cell {
-  line-height: 1.5;
-}
+  /* ========================================================== */
+  /* GLOBAL BODY                                                  */
+  /* ========================================================== */
+  body {
+    font-size: 14px !important;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--theme-elevation-50) !important;
+  }
 
-// Make the dashboard description text look less technical
-.view-description,
-.collection-description,
-.global-description {
-  color: var(--theme-elevation-500);
-  font-size: 13px;
-  line-height: 1.5;
-  max-width: 780px;
-}
+  /* ========================================================== */
+  /* LAYOUT — WIDE DESKTOP CONTENT                                */
+  /* Override Payload's narrow content gutter for desktop use.   */
+  /* ========================================================== */
+  .template-default,
+  .template-minimal {
+    .gutter {
+      max-width: 1440px !important;
+      padding-left: 32px !important;
+      padding-right: 32px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+  }
 
-// Cleaner tab styling on CareResources / StaticContent
-.tabs-field__tabs-wrap {
-  border-bottom: 1px solid var(--theme-elevation-100);
-  margin-bottom: 20px;
-}
+  /* Document view (collection edit screens) */
+  .collection-edit,
+  .global-edit {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
 
-.tabs-field__tab-button {
-  padding: 10px 16px !important;
-  font-weight: 500;
-}
+  /* Form container should breathe more */
+  .document-fields,
+  .render-fields {
+    padding-top: 12px;
+  }
 
-.tabs-field__tab-button--active {
-  color: #1B4F72 !important;
-  border-bottom-color: #1B4F72 !important;
-}
+  /* ========================================================== */
+  /* SIDEBAR / NAV                                                */
+  /* Distinct, slightly darker, sharper group headings.           */
+  /* ========================================================== */
+  .nav {
+    background: var(--theme-elevation-0) !important;
+    border-right: 1px solid var(--theme-elevation-100);
+    box-shadow: var(--shadow-sm);
+  }
 
-// Subtle card shadow on group fields for visual separation
-.group-field__wrap {
-  background: var(--theme-elevation-50);
-  border-radius: 8px;
-  padding: 16px;
+  .nav__wrap {
+    padding: 20px 12px !important;
+  }
+
+  /* Nav group labels: ALL CAPS, professional */
+  .nav__label,
+  .nav-group__label-wrap,
+  .nav-group__label {
+    text-transform: uppercase !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    color: var(--theme-elevation-500) !important;
+    padding: 16px 12px 8px !important;
+    margin: 0 !important;
+    border-top: 1px solid var(--theme-elevation-100);
+  }
+
+  .nav-group:first-child .nav-group__label,
+  .nav-group:first-child .nav__label,
+  .nav__wrap > .nav__label:first-of-type {
+    border-top: none;
+  }
+
+  /* Nav items — rounded, more clickable */
+  .nav__link,
+  .nav-group__indicator,
+  a.nav__link {
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    margin: 1px 0 !important;
+    font-weight: 500 !important;
+    transition: background 0.12s, color 0.12s !important;
+
+    &:hover {
+      background: var(--theme-elevation-100) !important;
+      color: var(--theme-success-500) !important;
+    }
+  }
+
+  /* Active nav item */
+  .nav__link--active,
+  a.nav__link--active,
+  .nav__link[aria-current='page'] {
+    background: var(--theme-success-50) !important;
+    color: var(--theme-success-600) !important;
+    font-weight: 600 !important;
+  }
+
+  /* ========================================================== */
+  /* HEADERS & TITLES                                             */
+  /* ========================================================== */
+  h1 {
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+    color: var(--theme-elevation-900) !important;
+  }
+
+  h2 {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: var(--theme-elevation-800) !important;
+  }
+
+  h3 {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: var(--theme-elevation-800) !important;
+  }
+
+  /* Doc header area */
+  .doc-header,
+  .step-nav + *,
+  .collection-list__header {
+    padding-bottom: 20px !important;
+    border-bottom: 1px solid var(--theme-elevation-100);
+    margin-bottom: 24px !important;
+  }
+
+  /* Step nav / breadcrumbs */
+  .step-nav {
+    font-size: 13px !important;
+    color: var(--theme-elevation-500) !important;
+
+    a {
+      color: var(--theme-elevation-600) !important;
+      text-decoration: none !important;
+
+      &:hover {
+        color: var(--theme-success-500) !important;
+      }
+    }
+  }
+
+  /* Collection / global list/edit descriptions */
+  .view-description,
+  .collection-description,
+  .global-description,
+  .render-fields__group-description {
+    color: var(--theme-elevation-600) !important;
+    font-size: 13.5px !important;
+    line-height: 1.55 !important;
+    max-width: 820px;
+    margin-top: 4px !important;
+  }
+
+  /* ========================================================== */
+  /* BUTTONS                                                      */
+  /* ========================================================== */
+  .btn,
+  button.btn {
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    padding: 8px 16px !important;
+    transition: all 0.12s !important;
+    box-shadow: var(--shadow-sm) !important;
+  }
+
+  .btn--style-primary,
+  .btn--icon-style-without-border.btn--style-primary {
+    background: var(--theme-success-500) !important;
+    border-color: var(--theme-success-500) !important;
+    color: white !important;
+
+    &:hover:not(:disabled) {
+      background: var(--theme-success-600) !important;
+      border-color: var(--theme-success-600) !important;
+      box-shadow: var(--shadow-md) !important;
+      transform: translateY(-1px);
+    }
+  }
+
+  .btn--style-secondary {
+    background: var(--theme-elevation-0) !important;
+    border-color: var(--theme-elevation-150) !important;
+    color: var(--theme-elevation-800) !important;
+
+    &:hover:not(:disabled) {
+      background: var(--theme-elevation-50) !important;
+      border-color: var(--theme-elevation-250) !important;
+    }
+  }
+
+  /* ========================================================== */
+  /* FORMS & INPUTS                                               */
+  /* ========================================================== */
+  .field-type label,
+  .field-label,
+  label.field-label {
+    font-weight: 600 !important;
+    color: var(--theme-elevation-800) !important;
+    font-size: 13px !important;
+    letter-spacing: 0.01em;
+  }
+
+  .field-description {
+    color: var(--theme-elevation-500) !important;
+    font-size: 12.5px !important;
+    line-height: 1.5 !important;
+    margin-top: 4px !important;
+  }
+
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='number'],
+  input[type='date'],
+  input[type='url'],
+  textarea,
+  select {
+    border-radius: 6px !important;
+    border: 1px solid var(--theme-elevation-200) !important;
+    padding: 9px 12px !important;
+    font-size: 14px !important;
+    transition: border-color 0.12s, box-shadow 0.12s !important;
+    background: var(--theme-elevation-0) !important;
+
+    &:focus {
+      border-color: var(--theme-success-400) !important;
+      box-shadow: 0 0 0 3px var(--theme-success-100) !important;
+      outline: none !important;
+    }
+
+    &:hover:not(:focus) {
+      border-color: var(--theme-elevation-300) !important;
+    }
+  }
+
+  /* ========================================================== */
+  /* TABS (CareResources, StaticContent tabbed layouts)           */
+  /* ========================================================== */
+  .tabs-field {
+    background: var(--theme-elevation-0);
+    border-radius: 10px;
+    border: 1px solid var(--theme-elevation-100);
+    padding: 4px 0 16px;
+    margin-bottom: 24px !important;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .tabs-field__tabs-wrap {
+    border-bottom: 1px solid var(--theme-elevation-100) !important;
+    padding: 0 20px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .tabs-field__tab-button {
+    padding: 14px 20px !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    color: var(--theme-elevation-600) !important;
+    border-bottom: 2px solid transparent !important;
+    transition: color 0.12s, border-color 0.12s !important;
+    background: transparent !important;
+
+    &:hover {
+      color: var(--theme-success-500) !important;
+    }
+  }
+
+  .tabs-field__tab-button--active {
+    color: var(--theme-success-500) !important;
+    border-bottom-color: var(--theme-success-500) !important;
+    font-weight: 600 !important;
+  }
+
+  .tabs-field__content-wrap {
+    padding: 0 24px;
+  }
+
+  /* ========================================================== */
+  /* FIELD GROUPS & ARRAY ROWS                                    */
+  /* ========================================================== */
+  .group-field__wrap {
+    background: var(--theme-elevation-50) !important;
+    border-radius: 8px !important;
+    padding: 20px !important;
+    border: 1px solid var(--theme-elevation-100);
+  }
+
+  .array-field__draggable-rows,
+  .array-field__wrap {
+    gap: 12px;
+  }
+
+  .collapsible__header,
+  .array-field__row-header {
+    background: var(--theme-elevation-0) !important;
+    border: 1px solid var(--theme-elevation-150) !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    transition: border-color 0.12s, box-shadow 0.12s !important;
+
+    &:hover {
+      border-color: var(--theme-success-200) !important;
+      box-shadow: var(--shadow-sm) !important;
+    }
+  }
+
+  /* ========================================================== */
+  /* LIST VIEWS (collection tables)                               */
+  /* ========================================================== */
+  .collection-list,
+  .list-controls {
+    background: var(--theme-elevation-0);
+    border-radius: 10px;
+    border: 1px solid var(--theme-elevation-100);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .collection-list__header {
+    padding: 16px 20px !important;
+  }
+
+  .table {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--theme-elevation-100);
+
+    thead {
+      background: var(--theme-elevation-50) !important;
+
+      th {
+        text-transform: none !important;
+        font-size: 12.5px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.01em !important;
+        color: var(--theme-elevation-700) !important;
+        padding: 12px 16px !important;
+      }
+    }
+
+    tbody tr {
+      transition: background 0.12s;
+
+      &:hover {
+        background: var(--theme-success-50) !important;
+      }
+
+      td {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        border-top: 1px solid var(--theme-elevation-100) !important;
+      }
+    }
+  }
+
+  /* Pill / pill-style chips */
+  .pill {
+    border-radius: 999px !important;
+    padding: 3px 10px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+  }
+
+  /* ========================================================== */
+  /* DOCUMENT CONTROLS (save bar, publish, etc.)                  */
+  /* ========================================================== */
+  .doc-controls {
+    background: var(--theme-elevation-0);
+    border-top: 1px solid var(--theme-elevation-100);
+    box-shadow: 0 -2px 8px rgba(15, 23, 42, 0.04);
+  }
+
+  .doc-controls__controls {
+    padding: 16px 32px !important;
+  }
+
+  /* ========================================================== */
+  /* LOGIN PAGE — centered, branded                               */
+  /* ========================================================== */
+  body.payload__login {
+    background: linear-gradient(135deg, var(--theme-elevation-50) 0%, var(--theme-elevation-100) 100%);
+  }
+
+  .login {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    background: var(--theme-elevation-0);
+    border-radius: 12px;
+    border: 1px solid var(--theme-elevation-100);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .login__brand {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  /* ========================================================== */
+  /* MISC POLISH                                                  */
+  /* ========================================================== */
+
+  /* Relationship selector chips */
+  .relationship__value,
+  .field-type.relationship .value-container {
+    background: var(--theme-elevation-0) !important;
+  }
+
+  /* Checkbox (prettier) */
+  .checkbox-input__input:checked ~ .checkbox-input__icon {
+    background: var(--theme-success-500) !important;
+    border-color: var(--theme-success-500) !important;
+  }
+
+  /* Focus rings are accessible and branded */
+  *:focus-visible {
+    outline: 2px solid var(--theme-success-400) !important;
+    outline-offset: 2px !important;
+    border-radius: 4px;
+  }
+
+  /* Dashboard (home) cards if Payload renders any */
+  .dashboard__card,
+  .dashboard__group {
+    background: var(--theme-elevation-0) !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--theme-elevation-100) !important;
+    padding: 24px !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: box-shadow 0.12s, transform 0.12s !important;
+
+    &:hover {
+      box-shadow: var(--shadow-md) !important;
+      transform: translateY(-1px);
+    }
+  }
+
+  /* Scrollbars (WebKit) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--theme-elevation-50);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--theme-elevation-200);
+    border-radius: 10px;
+    border: 2px solid var(--theme-elevation-50);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--theme-elevation-300);
+  }
 }
