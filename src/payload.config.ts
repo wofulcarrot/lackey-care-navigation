@@ -1,5 +1,6 @@
 import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { en } from '@payloadcms/translations/languages/en'
 import { es } from '@payloadcms/translations/languages/es'
@@ -46,11 +47,13 @@ export default buildConfig({
     TriageSessions,
   ],
   globals: [StaticContent],
-  db: postgresAdapter({
-    pool: {
-      connectionString: process.env.DATABASE_URI || '',
-    },
-  }),
+  db: process.env.DATABASE_URI?.startsWith('postgres')
+    ? postgresAdapter({
+        pool: { connectionString: process.env.DATABASE_URI },
+      })
+    : sqliteAdapter({
+        client: { url: process.env.DATABASE_URI || 'file:./lackey-preview.db' },
+      }),
   editor: lexicalEditor(),
   i18n: {
     supportedLanguages: { en, es },
