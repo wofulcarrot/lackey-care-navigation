@@ -36,6 +36,8 @@ export const CareResources: CollectionConfig = {
         { name: 'city', type: 'text' },
         { name: 'state', type: 'text' },
         { name: 'zip', type: 'text' },
+        { name: 'latitude', type: 'number', admin: { step: 0.0001, description: 'Decimal degrees, e.g. 36.8468' } },
+        { name: 'longitude', type: 'number', admin: { step: 0.0001, description: 'Decimal degrees, e.g. -76.2852' } },
       ],
     },
     { name: 'phone', type: 'text' },

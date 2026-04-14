@@ -22,15 +22,20 @@
   "type": "module",
   "dependencies": {
     "@payloadcms/db-postgres": "^3.82.1",
+    "@payloadcms/db-sqlite": "^3.82.1",
     "@payloadcms/next": "^3.82.1",
     "@payloadcms/richtext-lexical": "^3.82.1",
+    "@types/leaflet": "^1.9.21",
     "dompurify": "^3.3.3",
     "graphql": "^16.13.2",
+    "leaflet": "^1.9.4",
     "next": "^16.2.3",
     "next-intl": "^4.9.1",
     "payload": "^3.82.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-leaflet": "^5.0.0",
+    "recharts": "^3.8.1",
     "sharp": "^0.34.5"
   },
   "devDependencies": {

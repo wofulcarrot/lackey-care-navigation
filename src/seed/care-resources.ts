@@ -2,7 +2,7 @@ export const careResources = [
   {
     name: 'Sentara Norfolk General Hospital',
     type: 'er' as const,
-    address: { street: '600 Gresham Dr', city: 'Norfolk', state: 'VA', zip: '23507' },
+    address: { street: '600 Gresham Dr', city: 'Norfolk', state: 'VA', zip: '23507', latitude: 36.8617, longitude: -76.3045 },
     phone: '(757) 388-3000',
     is24_7: true,
     website: 'https://www.sentara.com/norfolk-general-hospital',
@@ -13,7 +13,7 @@ export const careResources = [
   {
     name: 'Sentara Leigh Hospital',
     type: 'er' as const,
-    address: { street: '830 Kempsville Rd', city: 'Norfolk', state: 'VA', zip: '23502' },
+    address: { street: '830 Kempsville Rd', city: 'Norfolk', state: 'VA', zip: '23502', latitude: 36.8559, longitude: -76.2234 },
     phone: '(757) 261-6000',
     is24_7: true,
     website: 'https://www.sentara.com/leigh-hospital',
@@ -24,7 +24,7 @@ export const careResources = [
   {
     name: 'Sentara Urgent Care - Wards Corner',
     type: 'urgent_care' as const,
-    address: { street: '801 Granby St', city: 'Norfolk', state: 'VA', zip: '23510' },
+    address: { street: '801 Granby St', city: 'Norfolk', state: 'VA', zip: '23510', latitude: 36.8573, longitude: -76.2884 },
     phone: '(757) 388-6000',
     hours: [
       { day: 'Monday', open: '8:00 AM', close: '8:00 PM' },
@@ -62,7 +62,7 @@ export const careResources = [
   {
     name: 'Lackey Clinic',
     type: 'primary_care' as const,
-    address: { street: '1620 Centerville Turnpike S', city: 'Chesapeake', state: 'VA', zip: '23320' },
+    address: { street: '1620 Centerville Turnpike S', city: 'Chesapeake', state: 'VA', zip: '23320', latitude: 36.7438, longitude: -76.2218 },
     phone: '(757) 547-7484',
     hours: [
       { day: 'Monday', open: '8:00 AM', close: '5:00 PM' },
@@ -80,7 +80,7 @@ export const careResources = [
   {
     name: 'EVMS Health Services',
     type: 'primary_care' as const,
-    address: { street: '825 Fairfax Ave', city: 'Norfolk', state: 'VA', zip: '23507' },
+    address: { street: '825 Fairfax Ave', city: 'Norfolk', state: 'VA', zip: '23507', latitude: 36.8593, longitude: -76.3031 },
     phone: '(757) 446-5905',
     hours: [
       { day: 'Monday', open: '8:00 AM', close: '5:00 PM' },
@@ -98,7 +98,7 @@ export const careResources = [
   {
     name: 'Norfolk Health Department',
     type: 'health_department' as const,
-    address: { street: '830 Southampton Ave Suite 200', city: 'Norfolk', state: 'VA', zip: '23510' },
+    address: { street: '830 Southampton Ave Suite 200', city: 'Norfolk', state: 'VA', zip: '23510', latitude: 36.8465, longitude: -76.2939 },
     phone: '(757) 683-2700',
     hours: [
       { day: 'Monday', open: '8:00 AM', close: '5:00 PM' },
@@ -115,7 +115,7 @@ export const careResources = [
   {
     name: 'EVMS Dental Clinic',
     type: 'dental' as const,
-    address: { street: '1050 Tidewater Dr', city: 'Norfolk', state: 'VA', zip: '23504' },
+    address: { street: '1050 Tidewater Dr', city: 'Norfolk', state: 'VA', zip: '23504', latitude: 36.8591, longitude: -76.2659 },
     phone: '(757) 446-5910',
     hours: [
       { day: 'Monday', open: '8:00 AM', close: '5:00 PM' },
@@ -132,7 +132,7 @@ export const careResources = [
   {
     name: 'Lackey Clinic Dental',
     type: 'dental' as const,
-    address: { street: '1620 Centerville Turnpike S', city: 'Chesapeake', state: 'VA', zip: '23320' },
+    address: { street: '1620 Centerville Turnpike S', city: 'Chesapeake', state: 'VA', zip: '23320', latitude: 36.7438, longitude: -76.2218 },
     phone: '(757) 547-7484',
     hours: [
       { day: 'Monday', open: '8:00 AM', close: '5:00 PM' },
@@ -150,7 +150,7 @@ export const careResources = [
   {
     name: 'Sentara Ambulatory Care Center - Princess Anne',
     type: 'urgent_care' as const,
-    address: { street: '2075 Glenn Mitchell Dr', city: 'Virginia Beach', state: 'VA', zip: '23456' },
+    address: { street: '2075 Glenn Mitchell Dr', city: 'Virginia Beach', state: 'VA', zip: '23456', latitude: 36.7667, longitude: -76.0472 },
     phone: '(757) 507-4000',
     hours: [
       { day: 'Monday', open: '8:00 AM', close: '8:00 PM' },
@@ -169,7 +169,7 @@ export const careResources = [
   {
     name: 'Norfolk Community Services Board',
     type: 'behavioral_health' as const,
-    address: { street: '225 W Olney Rd', city: 'Norfolk', state: 'VA', zip: '23510' },
+    address: { street: '225 W Olney Rd', city: 'Norfolk', state: 'VA', zip: '23510', latitude: 36.8547, longitude: -76.2896 },
     phone: '(757) 823-1600',
     hours: [
       { day: 'Monday', open: '8:00 AM', close: '5:00 PM' },
