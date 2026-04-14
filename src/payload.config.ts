@@ -32,11 +32,9 @@ export default buildConfig({
     },
     components: {
       views: {
-        // Replace Payload's default home with a task-oriented Lackey dashboard.
-        dashboard: {
-          Component: './views/AdminDashboard#AdminDashboard',
-        },
-        // Keep the existing analytics view at /admin/analytics
+        // Analytics view at /admin/analytics (custom home dashboard
+        // temporarily disabled — Payload v3 custom home renders are finicky;
+        // revisit with a simpler component shape.)
         analytics: {
           Component: './views/AnalyticsDashboard#AnalyticsDashboard',
           path: '/analytics',

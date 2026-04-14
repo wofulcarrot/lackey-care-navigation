@@ -23,7 +23,7 @@ export const UrgencyLevels: CollectionConfig = {
       admin: { description: 'Hex color for the badge on the results page (e.g., #FEE2E2 red, #DBEAFE blue, #EDE9FE purple)' } },
     { name: 'scoreThreshold', type: 'number', required: true,
       admin: { description: 'Minimum cumulative score to hit this level. Life-Threatening: 20, Emergent: 15, Urgent: 10, Semi-Urgent: 5, Routine: 2, Elective: 0' } },
-    { name: 'timeToCare', type: 'text', required: true, localized: true,
+    { name: 'timeToCare', type: 'text', required: true,
       admin: { description: 'Expected timeframe, e.g., "Immediate", "Same Day", "1-3 Days", "1-2 Weeks"' } },
     { name: 'description', type: 'textarea', localized: true,
       admin: { description: 'Optional longer explanation shown to patient' } },
