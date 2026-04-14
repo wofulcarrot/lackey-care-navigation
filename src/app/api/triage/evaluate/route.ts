@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { calculateScore, classifyUrgency, checkEscalation } from '@/lib/triage-engine'
 import { rateLimit } from '@/lib/rate-limit'
+import { recordSessionLogFailure } from '@/lib/observability'
 
 export async function POST(request: Request) {
   try {
@@ -63,11 +64,14 @@ export async function POST(request: Request) {
       limit: 100,
       locale: safeLocale,
     })
-    const urgencyLevel = classifyUrgency(score, urgencyLevelsResult.docs.map((d) => ({
+    const urgencyLevelsForClient = urgencyLevelsResult.docs.map((d) => ({
       id: String(d.id),
       name: typeof d.name === 'string' ? d.name : '',
       scoreThreshold: d.scoreThreshold,
-    })))
+      color: typeof d.color === 'string' ? d.color : '#E5E7EB',
+      timeToCare: typeof d.timeToCare === 'string' ? d.timeToCare : undefined,
+    }))
+    const urgencyLevel = classifyUrgency(score, urgencyLevelsForClient)
 
     if (!urgencyLevel) {
       return NextResponse.json({
@@ -108,7 +112,14 @@ export async function POST(request: Request) {
       })
     }
 
-    // Log anonymous session (fire-and-forget)
+    // Log anonymous session (fire-and-forget).
+    //
+    // Tradeoff: we intentionally do NOT await this write. Patient triage flow
+    // must never block on reporting-DB latency or outages. The downside is
+    // that failures would otherwise be invisible, so we increment an in-memory
+    // counter (see src/lib/observability.ts) that /api/health surfaces to
+    // uptime monitors and the CEO dashboard. This preserves grant-reporting
+    // integrity signals without coupling the patient path to write durability.
     const sessionId = crypto.randomUUID()
     payload.create({
       collection: 'triage-sessions',
@@ -126,7 +137,11 @@ export async function POST(request: Request) {
         device: safeDevice,
         questionSetVersion: body.questionSetVersion ?? null,
       },
-    }).catch((err) => console.error('[triage-session] Failed to log session:', err.message))
+    }).catch((err) => {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error('[triage-session] Failed to log session:', message)
+      recordSessionLogFailure(err)
+    })
 
     return NextResponse.json({
       escalate: false,

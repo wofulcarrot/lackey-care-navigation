@@ -9,6 +9,7 @@ import { PacingCard } from './components/PacingCard'
 import { ReachCard } from './components/ReachCard'
 import { HourlyHeatmap } from './components/HourlyHeatmap'
 import ReferralMap from './components/ReferralMapClient'
+import { ExportButton } from './components/ExportButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +24,34 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <DateRangePicker currentStart={data.dateRange.start} currentEnd={data.dateRange.end} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <DateRangePicker currentStart={data.dateRange.start} currentEnd={data.dateRange.end} />
+        <ExportButton
+          data={{
+            dateRange: {
+              start: data.dateRange.start.toISOString(),
+              end: data.dateRange.end.toISOString(),
+            },
+            days: data.days,
+            totalSessions: data.totalSessions,
+            completedCount: data.completedCount,
+            completedRate: data.completedRate,
+            virtualCount: data.virtualCount,
+            emergencyCount: data.emergencyCount,
+            inPersonCount: data.inPersonCount,
+            abandonedCount: data.abandonedCount,
+            routingMix: data.routingMix.map(({ name, count }) => ({ name, count })),
+            careTypeBreakdown: data.careTypeBreakdown,
+            urgencyBreakdown: data.urgencyBreakdown,
+            languageBreakdown: data.languageBreakdown,
+            deviceBreakdown: data.deviceBreakdown,
+            dailyTrend: data.dailyTrend,
+            hourlyHeatmap: data.hourlyHeatmap,
+            topPartners: data.topPartners,
+            virtualPacing: data.virtualPacing,
+          }}
+        />
+      </div>
 
       {/* Headline tiles */}
       <section

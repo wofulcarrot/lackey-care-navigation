@@ -12,9 +12,10 @@ interface Resource {
   cost?: string
   description?: string
   temporaryNotice?: string
+  distanceMiles?: number
 }
 
-export function ResourceCard({ resource }: { resource: Resource }) {
+export function ResourceCard({ resource, distanceLabel }: { resource: Resource; distanceLabel?: string }) {
   const t = useTranslations('results')
   const addr = resource.address
   const addressStr = addr ? `${addr.street ?? ''}, ${addr.city ?? ''}, ${addr.state ?? ''} ${addr.zip ?? ''}`.trim() : ''
@@ -29,7 +30,14 @@ export function ResourceCard({ resource }: { resource: Resource }) {
           ⚠ {resource.temporaryNotice}
         </div>
       )}
-      <h3 className="font-bold text-lg mb-1">{resource.name}</h3>
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <h3 className="font-bold text-lg">{resource.name}</h3>
+        {distanceLabel && (
+          <span className="text-sm font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded whitespace-nowrap">
+            {distanceLabel}
+          </span>
+        )}
+      </div>
       {resource.description && <p className="text-gray-600 text-sm mb-3">{resource.description}</p>}
       <div className="flex flex-col gap-2">
         {resource.phone && (

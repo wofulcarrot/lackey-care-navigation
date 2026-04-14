@@ -34,6 +34,13 @@
     "startOver": "Start over",
     "temporaryNotice": "Notice"
   },
+  "location": {
+    "findClosest": "Find closest to me",
+    "locating": "Finding your location...",
+    "zipPrompt": "Enter your ZIP code to find the closest options",
+    "zipSubmit": "Find",
+    "zipNotFound": "We don't have that ZIP code on file. Try another nearby ZIP."
+  },
   "disclaimers": {
     "heading": "Important Information",
     "notEmergency": "This is not a replacement for emergency services. If you are experiencing a medical emergency, call 911.",

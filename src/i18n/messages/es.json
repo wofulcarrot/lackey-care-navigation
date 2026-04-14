@@ -34,6 +34,13 @@
     "startOver": "Comenzar de nuevo",
     "temporaryNotice": "Aviso"
   },
+  "location": {
+    "findClosest": "Encontrar lo más cercano",
+    "locating": "Buscando su ubicación...",
+    "zipPrompt": "Ingrese su código postal para encontrar las opciones más cercanas",
+    "zipSubmit": "Buscar",
+    "zipNotFound": "No tenemos ese código postal en nuestros registros. Pruebe con otro código postal cercano."
+  },
   "disclaimers": {
     "heading": "Información Importante",
     "notEmergency": "Esto no reemplaza los servicios de emergencia. Si está experimentando una emergencia médica, llame al 911.",

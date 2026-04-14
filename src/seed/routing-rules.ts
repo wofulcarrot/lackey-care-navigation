@@ -12,9 +12,9 @@ export async function createRoutingRules(
     { careType: 'Medical', urgency: 'Life-Threatening', resources: ['Sentara Norfolk General Hospital'], vcEligible: false, action: 'Call 911 or go to the nearest ER' },
     { careType: 'Medical', urgency: 'Emergent', resources: ['Sentara Norfolk General Hospital', 'Sentara Leigh Hospital'], vcEligible: false, action: 'Go to the nearest emergency room' },
     // Medical + Urgent → Urgent Care + Virtual Care
-    { careType: 'Medical', urgency: 'Urgent', resources: ['Sentara Urgent Care - Wards Corner', 'Lackey Virtual Care'], vcEligible: true, action: 'Visit urgent care or start a free virtual visit' },
-    // Medical + Semi-Urgent → Virtual Care + Lackey Clinic
-    { careType: 'Medical', urgency: 'Semi-Urgent', resources: ['Lackey Virtual Care', 'Lackey Clinic'], vcEligible: true, action: 'Start a free virtual visit or schedule an appointment' },
+    { careType: 'Medical', urgency: 'Urgent', resources: ['Sentara Urgent Care - Wards Corner', 'AFC Urgent Care Norfolk', 'Velocity Urgent Care - Little Creek', 'Velocity Urgent Care - Chimney Hill', 'Velocity Urgent Care - Town Center', 'Patient First - Newtown Road', 'Patient First - General Booth', 'Patient First - Cedar Road', 'Lackey Virtual Care'], vcEligible: true, action: 'Visit urgent care or start a free virtual visit' },
+    // Medical + Semi-Urgent → Virtual Care + Lackey Clinic + nearby urgent care
+    { careType: 'Medical', urgency: 'Semi-Urgent', resources: ['Lackey Virtual Care', 'Lackey Clinic', 'AFC Urgent Care Norfolk', 'Velocity Urgent Care - Little Creek', 'Velocity Urgent Care - Chimney Hill', 'Velocity Urgent Care - Town Center', 'Patient First - Newtown Road', 'Patient First - General Booth', 'Patient First - Cedar Road'], vcEligible: true, action: 'Start a free virtual visit or schedule an appointment' },
     // Medical + Routine/Elective → Lackey Clinic + Virtual Care
     { careType: 'Medical', urgency: 'Routine', resources: ['Lackey Clinic', 'Lackey Virtual Care'], vcEligible: true, action: 'Schedule an appointment at Lackey Clinic' },
     { careType: 'Medical', urgency: 'Elective', resources: ['Lackey Clinic', 'Lackey Virtual Care'], vcEligible: true, action: 'Schedule at your convenience' },

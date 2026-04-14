@@ -12,6 +12,22 @@ const nextConfig: NextConfig = {
     // In development, use a permissive CSP so HMR, WebSockets, and
     // network-IP access (e.g. phone on same WiFi) all work.
     // In production, lock it down.
+    //
+    // Production CSP notes:
+    // - 'unsafe-eval' is removed in prod — Next.js production client code
+    //   does not need it (only dev HMR/Turbopack does).
+    // - 'strict-dynamic' combined with 'unsafe-inline' enables Next.js
+    //   hydration (`__next_f.push(...)`) in modern browsers that support
+    //   strict-dynamic (they ignore 'unsafe-inline' when strict-dynamic is
+    //   present), while older browsers fall back to 'unsafe-inline'.
+    // - style-src keeps 'unsafe-inline' because Tailwind and Leaflet inject
+    //   inline styles at runtime. TODO: move to hashed inline styles.
+    // - Future improvement (Option B): implement full nonce-based CSP via
+    //   Next.js middleware for maximum hardening. That requires generating a
+    //   per-request nonce, injecting it into all inline scripts, and
+    //   referencing it in the CSP header. Out of scope for this pilot.
+    // - The production CSP is intentionally stricter than dev; dev needs
+    //   'unsafe-eval' for HMR and `connect-src *` for WebSocket/network-IP.
     const csp = isDev
       ? [
           "default-src 'self'",
@@ -24,12 +40,15 @@ const nextConfig: NextConfig = {
         ].join('; ')
       : [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+          "script-src 'self' 'unsafe-inline' 'strict-dynamic'",
           "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: https:",
+          "img-src 'self' data: blob: https:",
           "font-src 'self' data:",
-          "connect-src 'self' https://luca.zipnosis.com",
+          "connect-src 'self' https://luca.zipnosis.com https://*.tile.openstreetmap.org",
           "frame-ancestors 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          "object-src 'none'",
         ].join('; ')
 
     return [
