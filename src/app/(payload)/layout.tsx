@@ -3,7 +3,12 @@ import type { ServerFunctionClient } from 'payload'
 import { RootLayout, handleServerFunctions } from '@payloadcms/next/layouts'
 import config from '@payload-config'
 import { importMap } from './admin/importMap.js'
-import '@payloadcms/ui/scss/app.scss'
+// Import the complete compiled Payload admin stylesheet (ships with
+// @payloadcms/next). This contains all component styles — nav, sidebar,
+// list tables, forms, everything. The base `app.scss` alone is incomplete
+// because individual components rely on their own co-located SCSS that
+// don't get bundled through a single entrypoint import.
+import '@payloadcms/next/css'
 import './custom.scss'
 
 type Args = {
