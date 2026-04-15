@@ -116,7 +116,10 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
       const stored = sessionStorage.getItem('triageResult')
       if (stored) {
         setData(JSON.parse(stored) as TriageResult)
-        sessionStorage.removeItem('triageResult')
+        // NOTE: we intentionally do NOT removeItem here. The component
+        // remounts when the user toggles locale (EN ↔ ES), and losing the
+        // stored result would dump them into the ErrorFallback. The item
+        // is cleared explicitly on Start Over and by landing page.
       }
     } catch {
       // fall through to ErrorFallback below
@@ -221,7 +224,17 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
           {t('eligibility')}
         </a>
         <button
-          onClick={() => router.push(`/${locale}`)}
+          onClick={() => {
+            // Clear stored triage data and the emergency-screen flow flag
+            // so the next run starts clean from the landing page.
+            try {
+              sessionStorage.removeItem('triageResult')
+              sessionStorage.removeItem('emergencyScreenCompleted')
+            } catch {
+              // non-fatal
+            }
+            router.push(`/${locale}`)
+          }}
           className="block w-full bg-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
         >
           {t('startOver')}
