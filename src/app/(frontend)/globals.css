@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
-/* Tailwind v4 — class-based dark mode. We toggle a `.dark` class on the
- * <html> element. Components opt in with `dark:` utility variants. */
+/* Class-based dark mode override.
+ * Tailwind v4 defaults the `dark:` variant to `@media (prefers-color-scheme: dark)`.
+ * This @custom-variant declaration replaces that with a `.dark` class
+ * selector so we can toggle dark mode programmatically from a button. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Smoother color transitions when the user flips the toggle. */
+/* Smooth color transition when the toggle flips the theme. */
 :root {
   color-scheme: light;
 }
