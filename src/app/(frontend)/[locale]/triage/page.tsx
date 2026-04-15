@@ -12,7 +12,12 @@ export default async function TriagePage({
   searchParams: Promise<{ careType?: string }>
 }) {
   const { locale } = await params
-  const { careType: careTypeId } = await searchParams
+  const { careType: careTypeIdRaw } = await searchParams
+
+  // Defensive: reject malformed care type IDs (e.g. "[object Object]" or "NaN"
+  // from a bad client-side URL interpolation). Postgres numeric casts would
+  // throw a 500 otherwise.
+  const careTypeId = careTypeIdRaw?.match(/^[A-Za-z0-9_-]{1,64}$/) ? careTypeIdRaw : null
   if (!careTypeId) return <ErrorFallback />
 
   const payload = await getPayload({ config })

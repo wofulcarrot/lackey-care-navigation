@@ -11,13 +11,25 @@ interface Question {
   answers: Answer[]
 }
 
+// Payload relationships may arrive as a primitive ID (number | string) when
+// depth=0, or as a populated object { id, ... } when depth>=1. Accept both.
+type PayloadRelation = string | number | { id: string | number } | null | undefined
+
 interface Answer {
   id?: string
   label: string
   urgencyWeight: number
   escalateImmediately: boolean
-  nextQuestion?: string | null
-  redirectToCareType?: string | null
+  nextQuestion?: PayloadRelation
+  redirectToCareType?: PayloadRelation
+}
+
+/** Extract the ID from a Payload relationship field, whether populated or not. */
+function relationId(rel: PayloadRelation): string | null {
+  if (rel == null) return null
+  if (typeof rel === 'string' || typeof rel === 'number') return String(rel)
+  if (typeof rel === 'object' && 'id' in rel && rel.id != null) return String(rel.id)
+  return null
 }
 
 interface TriageState {
@@ -48,21 +60,24 @@ export function useTriage(questions: Question[]) {
       return
     }
 
-    const redirect = answers.find((a) => a.redirectToCareType)
-    if (redirect?.redirectToCareType) {
-      setState((prev) => ({ ...prev, redirectCareType: redirect.redirectToCareType! }))
-      return
+    const redirectAnswer = answers.find((a) => relationId(a.redirectToCareType) !== null)
+    if (redirectAnswer) {
+      const targetId = relationId(redirectAnswer.redirectToCareType)
+      if (targetId) {
+        setState((prev) => ({ ...prev, redirectCareType: targetId }))
+        return
+      }
     }
 
     setState((prev) => {
       const scoreAdd = answers.reduce((sum, a) => sum + a.urgencyWeight, 0)
       const currentQ = sorted[prev.currentQuestionIndex]
 
-      const branchTarget = answers.length === 1 ? answers[0].nextQuestion : null
+      const branchTarget = answers.length === 1 ? relationId(answers[0].nextQuestion) : null
       let nextIndex: number
 
       if (branchTarget) {
-        nextIndex = sorted.findIndex((q) => q.id === branchTarget)
+        nextIndex = sorted.findIndex((q) => String(q.id) === branchTarget)
         if (nextIndex === -1) nextIndex = prev.currentQuestionIndex + 1
       } else {
         nextIndex = prev.currentQuestionIndex + 1
