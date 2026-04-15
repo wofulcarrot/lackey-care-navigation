@@ -49,17 +49,17 @@ export function QuestionCard({
 
   return (
     <div className="px-4 py-6">
-      <h2 id="question-text" className="text-2xl font-bold mb-2">{text}</h2>
+      <h2 id="question-text" className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">{text}</h2>
       {helpText && (
         <button
           onClick={() => setShowHelp(!showHelp)}
-          className="text-blue-600 text-sm mb-4 underline min-h-[48px]"
+          className="text-blue-600 dark:text-blue-400 text-sm mb-4 underline min-h-[48px]"
         >
           {t('helpText')}
         </button>
       )}
       {showHelp && helpText && (
-        <p className="text-gray-600 mb-4 p-3 bg-gray-50 rounded-lg">
+        <p className="text-gray-600 dark:text-gray-300 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           {helpText}
         </p>
       )}
@@ -72,8 +72,8 @@ export function QuestionCard({
             onClick={() => handleSelect(i)}
             className={`w-full text-left p-4 rounded-xl border-2 text-lg min-h-[48px] transition ${
               selected.has(i)
-                ? 'border-blue-600 bg-blue-50 font-bold'
-                : 'border-gray-200 bg-white'
+                ? 'border-blue-600 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-100 font-bold'
+                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-gray-100'
             }`}
           >
             {a.label}
@@ -83,7 +83,7 @@ export function QuestionCard({
       {type === 'multi_choice' && selected.size > 0 && (
         <button
           onClick={handleMultiSubmit}
-          className="mt-4 w-full bg-blue-600 text-white py-4 rounded-xl text-lg font-bold min-h-[48px]"
+          className="mt-4 w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white py-4 rounded-xl text-lg font-bold min-h-[48px]"
         >
           {t('next')}
         </button>

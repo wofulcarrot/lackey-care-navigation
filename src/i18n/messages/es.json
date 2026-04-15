@@ -39,7 +39,16 @@
     "locating": "Buscando su ubicación...",
     "zipPrompt": "Ingrese su código postal para encontrar las opciones más cercanas",
     "zipSubmit": "Buscar",
-    "zipNotFound": "No tenemos ese código postal en nuestros registros. Pruebe con otro código postal cercano."
+    "zipLookingUp": "Buscando su código postal...",
+    "zipInvalid": "Por favor ingrese un código postal de 5 dígitos.",
+    "zipNotFound": "No se encontró ese código postal. Verifique los dígitos e intente de nuevo."
+  },
+  "locationScreen": {
+    "heading": "Necesita atención de urgencia pronto",
+    "body": "Comparta su ubicación y encontraremos los centros de atención de urgencia más cercanos dentro de 10 millas.",
+    "searching": "Buscando la atención de urgencia más cercana a usted…",
+    "skip": "Omitir — mostrarme opciones generales",
+    "privacyNote": "Su ubicación se usa solo para encontrar atención cercana. No se guarda ni se comparte."
   },
   "disclaimers": {
     "heading": "Información Importante",
@@ -54,6 +63,8 @@
     "poweredBy": "Desarrollado por Lackey Clinic",
     "translationPending": "Traducción pendiente",
     "errorTitle": "Tenemos problemas para cargar esta página",
-    "startVirtualVisit": "Iniciar visita virtual gratuita"
+    "startVirtualVisit": "Iniciar visita virtual gratuita",
+    "switchToDark": "Cambiar a modo oscuro",
+    "switchToLight": "Cambiar a modo claro"
   }
 }

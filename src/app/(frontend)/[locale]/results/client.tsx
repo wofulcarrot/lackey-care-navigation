@@ -179,21 +179,21 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
       {data.urgencyLevel && (
         <div className="mb-6">
           <span
-            className="inline-block px-3 py-1 rounded-full text-sm font-bold mb-2"
+            className="inline-block px-3 py-1 rounded-full text-sm font-bold mb-2 text-gray-900"
             style={{ backgroundColor: data.urgencyLevel.color }}
           >
             {data.urgencyLevel.name}
           </span>
           {data.urgencyLevel.timeToCare && (
-            <p className="text-gray-600">Expected: {data.urgencyLevel.timeToCare}</p>
+            <p className="text-gray-600 dark:text-gray-400">Expected: {data.urgencyLevel.timeToCare}</p>
           )}
         </div>
       )}
 
-      <h1 className="text-2xl font-bold mb-4">{t('heading')}</h1>
+      <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t('heading')}</h1>
 
       {data.actionText && (
-        <p className="text-lg font-medium mb-6">{data.actionText}</p>
+        <p className="text-lg font-medium mb-6 text-gray-800 dark:text-gray-200">{data.actionText}</p>
       )}
 
       {!userLoc && resources.some((r) => r.address?.latitude && r.address?.longitude) && (
@@ -211,7 +211,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
       </div>
 
       {data.nextSteps && (
-        <div className="prose mb-8" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data.nextSteps, CLEAN_CONFIG) }} />
+        <div className="prose dark:prose-invert mb-8 text-gray-800 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data.nextSteps, CLEAN_CONFIG) }} />
       )}
 
       <div className="flex flex-col gap-4">
@@ -219,7 +219,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
           href={`${eligibilityUrl}?utm_source=triage&utm_medium=referral`}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full bg-blue-600 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]"
+          className="block w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]"
         >
           {t('eligibility')}
         </a>
@@ -235,7 +235,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
             }
             router.push(`/${locale}`)
           }}
-          className="block w-full bg-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
+          className="block w-full bg-gray-100 dark:bg-gray-800 dark:text-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
         >
           {t('startOver')}
         </button>

@@ -37,7 +37,7 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
 
   return (
     <div className="px-4 py-6">
-      <h1 className="text-2xl font-bold mb-6 text-red-700">{t('title')}</h1>
+      <h1 className="text-2xl font-bold mb-6 text-red-700 dark:text-red-400">{t('title')}</h1>
       <div className="flex flex-col gap-3 mb-8">
         {symptoms.map((s) => (
           <button
@@ -46,8 +46,8 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
             aria-pressed={checked.has(s.id)}
             className={`w-full text-left p-4 rounded-xl border-2 text-lg min-h-[48px] transition ${
               checked.has(s.id)
-                ? 'border-red-600 bg-red-50 font-bold'
-                : 'border-gray-200 bg-white'
+                ? 'border-red-600 bg-red-50 dark:bg-red-950/40 dark:border-red-500 dark:text-red-100 font-bold'
+                : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100'
             }`}
           >
             {s.symptom}
@@ -56,7 +56,7 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
       </div>
       <button
         onClick={handleSubmit}
-        className="block w-full bg-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
+        className="block w-full bg-gray-100 dark:bg-gray-800 dark:text-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
       >
         {checked.size > 0 ? t('alert') : t('noneOfThese')}
       </button>

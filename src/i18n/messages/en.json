@@ -39,7 +39,16 @@
     "locating": "Finding your location...",
     "zipPrompt": "Enter your ZIP code to find the closest options",
     "zipSubmit": "Find",
-    "zipNotFound": "We don't have that ZIP code on file. Try another nearby ZIP."
+    "zipLookingUp": "Looking up your ZIP code...",
+    "zipInvalid": "Please enter a 5-digit ZIP code.",
+    "zipNotFound": "That ZIP code wasn't found. Double-check the digits and try again."
+  },
+  "locationScreen": {
+    "heading": "You need urgent care soon",
+    "body": "Share your location and we'll find the closest urgent care facilities within 10 miles.",
+    "searching": "Finding the nearest urgent care near you…",
+    "skip": "Skip — show me general options",
+    "privacyNote": "Your location is used only to find nearby care. It is not saved or shared."
   },
   "disclaimers": {
     "heading": "Important Information",
@@ -54,6 +63,8 @@
     "poweredBy": "Powered by Lackey Clinic",
     "translationPending": "Translation pending",
     "errorTitle": "We're having trouble loading this page",
-    "startVirtualVisit": "Start Free Virtual Visit"
+    "startVirtualVisit": "Start Free Virtual Visit",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
   }
 }

@@ -57,7 +57,15 @@ export function TriageClient({
       .then((r) => r.json())
       .then((data) => {
         sessionStorage.setItem('triageResult', JSON.stringify(data))
-        router.push(`/${locale}/results`)
+        // When urgency is Urgent (threshold 10), route through the location
+        // screen so we can swap in real nearby urgent cares via Foursquare.
+        // All other urgency levels proceed directly to results as before.
+        const isUrgent = data?.urgencyLevel?.scoreThreshold === 10
+        if (isUrgent && !data?.escalate) {
+          router.push(`/${locale}/location`)
+        } else {
+          router.push(`/${locale}/results`)
+        }
       })
       .catch(() => {
         router.push(`/${locale}/results?fallback=true`)

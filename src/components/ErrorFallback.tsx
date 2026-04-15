@@ -13,22 +13,22 @@ export function ErrorFallback({ clinicPhone, virtualCareUrl, onRetry }: ErrorFal
   const tResults = useTranslations('results')
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-      <h2 className="text-2xl font-bold mb-4">{t('errorTitle')}</h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t('errorTitle')}</h2>
       <div className="flex flex-col gap-4 w-full max-w-sm">
         {clinicPhone && (
-          <a href={`tel:${clinicPhone}`} className="block w-full bg-blue-600 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]">
+          <a href={`tel:${clinicPhone}`} className="block w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]">
             {tResults('call')} Lackey Clinic
           </a>
         )}
         {virtualCareUrl && (
-          <a href={virtualCareUrl} target="_blank" rel="noopener noreferrer" className="block w-full bg-green-600 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]">
+          <a href={virtualCareUrl} target="_blank" rel="noopener noreferrer" className="block w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]">
             {t('startVirtualVisit')}
           </a>
         )}
         {onRetry && (
           <button
             onClick={onRetry}
-            className="block w-full bg-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
+            className="block w-full bg-gray-100 dark:bg-gray-800 dark:text-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
           >
             {tResults('startOver')}
           </button>

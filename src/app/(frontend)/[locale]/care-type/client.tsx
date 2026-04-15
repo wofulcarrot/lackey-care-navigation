@@ -26,7 +26,7 @@ export function CareTypeSelectionClient({ careTypes }: { careTypes: CareType[] }
 
   return (
     <div className="px-4 py-6">
-      <h1 className="text-2xl font-bold mb-6">{t('title')}</h1>
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">{t('title')}</h1>
       <div className="flex flex-col gap-3">
         {careTypes.map((ct) => (
           <CareTypeCard

@@ -90,9 +90,48 @@ const ZIP_CENTROIDS: Record<string, { lat: number; lon: number }> = {
   '23438': { lat: 36.6094, lon: -76.5967 },
 }
 
+/** Synchronous lookup — only returns a hit for Hampton Roads ZIPs. */
 export function lookupZip(zip: string): { lat: number; lon: number } | null {
   const cleaned = zip.trim().slice(0, 5)
   return ZIP_CENTROIDS[cleaned] ?? null
+}
+
+/**
+ * Async lookup that supports ANY US ZIP code.
+ * - Fast path: Hampton Roads centroids (local lookup, zero network)
+ * - Fallback: Zippopotam.us free public API (no key, no rate limit)
+ *
+ * Returns null if the ZIP is invalid, not found, or the API is unreachable.
+ */
+export async function lookupZipAnywhere(zip: string): Promise<{ lat: number; lon: number } | null> {
+  const cleaned = zip.trim().slice(0, 5)
+  if (!/^\d{5}$/.test(cleaned)) return null
+
+  // Local fast path
+  const local = ZIP_CENTROIDS[cleaned]
+  if (local) return local
+
+  // Remote fallback — Zippopotam.us is a free, CORS-enabled public API that
+  // returns the lat/lng centroid of any US ZIP. No API key required.
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 4000)
+    const res = await fetch(`https://api.zippopotam.us/us/${cleaned}`, {
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    })
+    clearTimeout(timer)
+    if (!res.ok) return null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = await res.json()
+    const place = Array.isArray(data?.places) ? data.places[0] : null
+    const lat = parseFloat(place?.latitude)
+    const lon = parseFloat(place?.longitude)
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null
+    return { lat, lon }
+  } catch {
+    return null
+  }
 }
 
 /**
