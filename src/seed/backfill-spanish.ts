@@ -378,6 +378,60 @@ async function main() {
   }
   console.log(`  ✓ ${ruleCount} routing rule actions translated`)
 
+  // === STATIC CONTENT (global) ===
+  // The virtualCareBullets and disclaimers arrays need IDs preserved so
+  // Payload treats them as updates (not recreates) in each locale. Fetch
+  // the English array first, then write the Spanish payload mapped 1:1
+  // by array index with the same IDs.
+  console.log('\nBackfilling static content (global) Spanish...')
+  try {
+    const enGlobal = await payload.findGlobal({ slug: 'static-content', locale: 'en' }) as Record<string, unknown>
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const enBullets: any[] = Array.isArray(enGlobal.virtualCareBullets) ? enGlobal.virtualCareBullets as any[] : []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const enDisclaimers: any[] = Array.isArray(enGlobal.disclaimers) ? enGlobal.disclaimers as any[] : []
+
+    const esBulletTexts = [
+      'Gratis para adultos mayores de 18 años',
+      'Disponible 24/7',
+      'No se necesita seguro médico',
+      '95% resuelto completamente en línea',
+      'Privado y seguro',
+    ]
+
+    const esDisclaimerTexts = [
+      'Esto no reemplaza los servicios de emergencia. Si está experimentando una emergencia médica, llame al 911.',
+      'Esta herramienta no determina la elegibilidad o inscripción al seguro.',
+      'La disponibilidad de citas no está garantizada y depende de la capacidad del proveedor.',
+      'Este servicio no está destinado para crisis de enfermedad mental grave. Llame a la línea de crisis al (757) 664-6000.',
+      'No se recetarán sustancias controladas a través de las visitas de atención virtual.',
+    ]
+
+    await payload.updateGlobal({
+      slug: 'static-content',
+      locale: 'es',
+      data: {
+        heroTitle: 'Obtenga la atención adecuada ahora mismo',
+        heroSubtitle: 'Ayuda gratuita para encontrar la atención que necesita — sin seguro médico requerido',
+        virtualCareHeading: 'Es posible que pueda recibir atención gratuita ahora mismo',
+        virtualCareBullets: enBullets.map((b, i) => ({
+          id: b.id,
+          text: esBulletTexts[i] ?? b.text,
+        })),
+        disclaimers: enDisclaimers.map((d, i) => ({
+          id: d.id,
+          text: esDisclaimerTexts[i] ?? d.text,
+        })),
+        privacyNote: 'No recopilamos información personal.',
+        footerText: 'Desarrollado por Lackey Clinic',
+      },
+    })
+    console.log('  ✓ Static content Spanish localized (hero, bullets, disclaimers, footer)')
+  } catch (err) {
+    console.error('  ✗ Static content update failed:', (err as Error).message)
+  }
+
   console.log('Loading existing questions...')
   const questionsResult = await payload.find({ collection: 'questions', limit: 200, locale: 'en' })
   const questionByText = new Map<string, { id: number | string }>()
