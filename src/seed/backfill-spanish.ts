@@ -338,11 +338,16 @@ async function main() {
     const tr = urgencyLevelTranslations[enName]
     if (!tr) continue
     try {
+      // Only `name` and `description` are localized on UrgencyLevels.
+      // `timeToCare` is NOT localized (writing it with locale: 'es' would
+      // silently overwrite the English value, since Payload stores non-
+      // localized fields once). For now, keep timeToCare English-only;
+      // flip the collection to localize it later via a proper migration.
       await payload.update({
         collection: 'urgency-levels',
         id: lv.id,
         locale: 'es',
-        data: { name: tr.name, timeToCare: tr.timeToCare, description: tr.description },
+        data: { name: tr.name, description: tr.description },
       })
       levelCount++
     } catch (err) {
