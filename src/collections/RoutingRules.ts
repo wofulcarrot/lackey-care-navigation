@@ -59,7 +59,5 @@ export const RoutingRules: CollectionConfig = {
       admin: { description: 'If true, patient sees the Virtual Care interstitial before the resources list.' } },
     { name: 'actionText', type: 'text', required: true, localized: true,
       admin: { description: 'Primary call-to-action at the top of results (e.g., "Call 911", "Start a Free Virtual Visit", "Visit Lackey Clinic")' } },
-    { name: 'nextSteps', type: 'richText', localized: true,
-      admin: { description: 'Optional extended instructions shown below the resources. Supports paragraphs, lists, and links.' } },
   ],
 }

@@ -7,9 +7,11 @@ interface Resource {
   type: string
   address?: { street?: string; city?: string; state?: string; zip?: string }
   phone?: string
+  website?: string
   is24_7?: boolean
   hours?: { day: string; open: string; close: string }[]
   cost?: string
+  eligibility?: string
   description?: string
   temporaryNotice?: string
   distanceMiles?: number
@@ -50,11 +52,21 @@ export function ResourceCard({ resource, distanceLabel }: { resource: Resource; 
             📍 {t('getDirections')}
           </a>
         )}
+        {resource.website && (
+          <a href={resource.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 dark:text-blue-400 min-h-[48px]">
+            🌐 Website
+          </a>
+        )}
         {resource.is24_7 && <span className="text-green-700 dark:text-green-400 font-medium">Open 24/7</span>}
         {resource.cost && (
           <span className="inline-block bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 text-sm px-2 py-1 rounded">
             {resource.cost === 'free' ? 'Free' : resource.cost === 'sliding_scale' ? 'Sliding Scale' : 'Insurance Required'}
           </span>
+        )}
+        {resource.eligibility && (
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+            {resource.eligibility}
+          </p>
         )}
       </div>
     </div>

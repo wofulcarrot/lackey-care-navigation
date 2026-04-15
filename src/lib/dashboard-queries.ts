@@ -50,17 +50,25 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
   const msPerDay = 1000 * 60 * 60 * 24
   const days = Math.max(1, Math.ceil((range.end.getTime() - range.start.getTime()) / msPerDay))
 
-  // Fetch all sessions in range with populated relationships
+  // Fetch all sessions in range with populated relationships.
+  //
+  // Cap at 50,000 rows as a hard ceiling to protect the dashboard from
+  // degenerating into a full-table scan if triage-sessions gets flooded
+  // (analytics spam, a bot loop, or years of accumulated history).
+  // The `not_like: 'sample-%'` filter excludes seed data written by
+  // src/seed/sample-sessions.ts (which uses `sessionId: \`sample-...\``)
+  // so dashboards reflect real traffic.
   const sessionsRes = await payload.find({
     collection: 'triage-sessions',
     where: {
-      createdAt: {
-        greater_than_equal: range.start.toISOString(),
-        less_than_equal: range.end.toISOString(),
-      },
+      and: [
+        { createdAt: { greater_than_equal: range.start.toISOString() } },
+        { createdAt: { less_than_equal: range.end.toISOString() } },
+        { sessionId: { not_like: 'sample-%' } },
+      ],
     },
     depth: 1,
-    limit: 0, // all matching docs
+    limit: 50000,
     pagination: false,
     overrideAccess: true,
   })

@@ -44,8 +44,39 @@ export async function POST(request: Request) {
       )
     }
 
+    const payload = await getPayload({ config })
+
     // Check for immediate escalation
     if (checkEscalation(answers)) {
+      // Fire-and-forget session log for answer-triggered escalations.
+      // Mirrors the non-escalation logging below: we do NOT await so the
+      // escalated response returns in one RTT, but failures still increment
+      // the observability counter used by /api/health.
+      const sessionId = crypto.randomUUID()
+      payload.create({
+        collection: 'triage-sessions',
+        // overrideAccess lets this trusted server path write through the
+        // locked-down access.create rule (which requires an authed user to
+        // block public REST abuse). See collections/TriageSessions.ts.
+        overrideAccess: true,
+        data: {
+          sessionId,
+          careTypeSelected: careTypeId,
+          urgencyResult: null,
+          resourcesShown: [],
+          virtualCareOffered: false,
+          emergencyScreenTriggered: false,
+          completedFlow: true,
+          locale: safeLocale,
+          device: safeDevice,
+          questionSetVersion: body.questionSetVersion ?? null,
+        },
+      }).catch((err) => {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error('[triage-session] Failed to log escalation session:', message)
+        recordSessionLogFailure(err)
+      })
+
       return NextResponse.json({
         escalate: true,
         urgencyLevel: null,
@@ -53,8 +84,6 @@ export async function POST(request: Request) {
         actionText: 'Call 911',
       })
     }
-
-    const payload = await getPayload({ config })
 
     // Calculate score and classify urgency
     const score = calculateScore(answers)
@@ -123,6 +152,8 @@ export async function POST(request: Request) {
     const sessionId = crypto.randomUUID()
     payload.create({
       collection: 'triage-sessions',
+      // overrideAccess: trusted server path (see TriageSessions access rule)
+      overrideAccess: true,
       data: {
         sessionId,
         careTypeSelected: careTypeId,

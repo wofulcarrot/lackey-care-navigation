@@ -254,6 +254,67 @@ const urgencyLevelTranslations: Record<string, { name: string; timeToCare?: stri
   'Elective': { name: 'Electivo', timeToCare: 'Según disponibilidad', description: 'Programe cuando le convenga' },
 }
 
+const careResourceTranslations: Record<string, { description?: string; eligibility?: string }> = {
+  'Sentara Norfolk General Hospital': {
+    description: 'Centro de Trauma Nivel I. Sala de emergencias con todos los servicios.',
+  },
+  'Sentara Leigh Hospital': {
+    description: 'Sala de emergencias con todos los servicios.',
+  },
+  'Sentara Urgent Care - Wards Corner': {
+    description: 'Atención de urgencia sin cita previa.',
+  },
+  'Norfolk Community Services Board - Crisis Line': {
+    description: 'Apoyo para crisis de salud mental. Disponible 24/7.',
+  },
+  'Lackey Virtual Care': {
+    description: 'Visitas virtuales gratuitas 24/7 para adultos sin seguro médico mayores de 18 años.',
+  },
+  'Lackey Clinic': {
+    description: 'Atención primaria gratuita para adultos sin seguro médico elegibles mayores de 18 años.',
+    eligibility: 'Debe ser adulto sin seguro mayor de 18 años que viva en Hampton Roads.',
+  },
+  'EVMS Health Services': {
+    description: 'FQHC que brinda atención primaria para pacientes sin seguro médico. Escala variable según ingresos.',
+  },
+  'Norfolk Health Department': {
+    description: 'Servicios de salud pública incluyendo pruebas de ETS, vacunas y exámenes médicos.',
+  },
+  'EVMS Dental Clinic': {
+    description: 'Servicios dentales en escala variable. Acepta pacientes sin seguro médico.',
+  },
+  'Lackey Clinic Dental': {
+    description: 'Atención dental gratuita para adultos sin seguro médico elegibles.',
+  },
+  'Sentara Ambulatory Care Center - Princess Anne': {
+    description: 'Centro de atención ambulatoria sin cita previa. No se necesita cita para la mayoría de los servicios.',
+  },
+  'Norfolk Community Services Board': {
+    description: 'Servicios ambulatorios de salud mental y uso de sustancias. Escala variable.',
+  },
+  'AFC Urgent Care Norfolk': {
+    description: 'Atención de urgencia sin cita y salud ocupacional. Se acepta pago directo.',
+  },
+  'Velocity Urgent Care - Little Creek': {
+    description: 'Atención de urgencia sin cita. Se acepta pago directo y la mayoría de los seguros.',
+  },
+  'Velocity Urgent Care - Chimney Hill': {
+    description: 'Atención de urgencia sin cita. Se acepta pago directo y la mayoría de los seguros.',
+  },
+  'Velocity Urgent Care - Town Center': {
+    description: 'Atención de urgencia sin cita. Se acepta pago directo y la mayoría de los seguros.',
+  },
+  'Patient First - Newtown Road': {
+    description: 'Atención de urgencia sin cita, abierto de 8am a 8pm, 365 días. Se acepta pago directo.',
+  },
+  'Patient First - General Booth': {
+    description: 'Atención de urgencia sin cita, abierto de 8am a 8pm, 365 días. Se acepta pago directo.',
+  },
+  'Patient First - Cedar Road': {
+    description: 'Atención de urgencia sin cita, abierto de 8am a 8pm, 365 días. Se acepta pago directo.',
+  },
+}
+
 const routingActionTranslations: Record<string, string> = {
   'Call 911 or go to the nearest ER': 'Llame al 911 o vaya a la sala de emergencias más cercana',
   'Go to the nearest emergency room': 'Vaya a la sala de emergencias más cercana',
@@ -355,6 +416,32 @@ async function main() {
     }
   }
   console.log(`  ✓ ${levelCount} urgency levels translated`)
+
+  // === CARE RESOURCES (description + eligibility) ===
+  console.log('\nBackfilling care resource Spanish translations...')
+  const resources = await payload.find({ collection: 'care-resources', limit: 200, locale: 'en' })
+  let resourceCount = 0
+  for (const r of resources.docs) {
+    const enName = typeof r.name === 'string' ? r.name : ''
+    const tr = careResourceTranslations[enName]
+    if (!tr) continue
+    try {
+      const data: Record<string, string> = {}
+      if (tr.description) data.description = tr.description
+      if (tr.eligibility) data.eligibility = tr.eligibility
+      if (Object.keys(data).length === 0) continue
+      await payload.update({
+        collection: 'care-resources',
+        id: r.id,
+        locale: 'es',
+        data,
+      })
+      resourceCount++
+    } catch (err) {
+      console.error(`  ✗ ${enName}:`, (err as Error).message)
+    }
+  }
+  console.log(`  ✓ ${resourceCount} care resources translated`)
 
   // === ROUTING RULES (action text) ===
   console.log('\nBackfilling routing rule action text...')

@@ -3,51 +3,11 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
-import DOMPurify from 'dompurify'
 import { ResourceCard } from '@/components/ResourceCard'
 import { VirtualCareInterstitial } from '@/components/VirtualCareInterstitial'
 import { ErrorFallback } from '@/components/ErrorFallback'
 import { LocationPrompt } from '@/components/LocationPrompt'
 import { distanceMiles, formatDistance } from '@/lib/distance'
-
-/**
- * Hardened DOMPurify config for admin-authored nextSteps rich text.
- *
- * Allows ONLY: paragraphs, line breaks, basic emphasis, lists, h3/h4 headings, links.
- * Forbids ALL inline styles, scripts, iframes, embeds, forms, and event handler attributes.
- * URI scheme allowlist blocks `javascript:`, `data:`, `vbscript:` URLs on links.
- *
- * Manual QA test cases (should all be neutralized):
- *   <script>alert(1)</script>                  -> stripped (FORBID_TAGS + default)
- *   <a href="javascript:alert(1)">click</a>    -> href stripped (ALLOWED_URI_REGEXP)
- *   <img src=x onerror=alert(1)>               -> tag stripped (not in ALLOWED_TAGS)
- *   <iframe src="evil">                        -> stripped (FORBID_TAGS)
- *   <p onclick="alert(1)">hi</p>               -> onclick stripped (FORBID_ATTR)
- */
-const CLEAN_CONFIG = {
-  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'ul', 'ol', 'li', 'h3', 'h4', 'a'],
-  ALLOWED_ATTR: ['href', 'target', 'rel'],
-  // Reject all JavaScript URLs explicitly
-  ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
-  FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
-  FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur', 'onchange', 'onsubmit'],
-  KEEP_CONTENT: true,
-  ALLOW_DATA_ATTR: false,
-}
-
-// Link hardening: force target="_blank" and rel="noopener noreferrer" on every
-// sanitized <a>. DOMPurify.addHook is global state; guard with a module-level
-// flag so repeated imports/HMR don't register duplicate hooks.
-let __lackeyDomPurifyHookRegistered = false
-if (typeof window !== 'undefined' && !__lackeyDomPurifyHookRegistered) {
-  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-    if ((node as Element).tagName === 'A') {
-      ;(node as Element).setAttribute('target', '_blank')
-      ;(node as Element).setAttribute('rel', 'noopener noreferrer')
-    }
-  })
-  __lackeyDomPurifyHookRegistered = true
-}
 
 interface ResourceAddress {
   street?: string
@@ -84,7 +44,6 @@ interface TriageResult {
   resources: TriageResource[]
   virtualCareEligible?: boolean
   actionText?: string
-  nextSteps?: string
   fallback?: boolean
 }
 
@@ -209,10 +168,6 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
           />
         ))}
       </div>
-
-      {data.nextSteps && (
-        <div className="prose dark:prose-invert mb-8 text-gray-800 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data.nextSteps, CLEAN_CONFIG) }} />
-      )}
 
       <div className="flex flex-col gap-4">
         <a

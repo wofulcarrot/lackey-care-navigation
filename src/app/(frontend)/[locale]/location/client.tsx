@@ -41,7 +41,6 @@ interface TriageResult {
   resources: TriageResource[]
   virtualCareEligible?: boolean
   actionText?: string
-  nextSteps?: string
   fallback?: boolean
 }
 
@@ -64,8 +63,13 @@ export function LocationScreenClient({ locale }: Props) {
       }
       const parsed = JSON.parse(stored) as TriageResult
       // Only the Urgent tier triggers this flow; everything else passes
-      // through to normal results.
-      if (parsed.urgencyLevel?.scoreThreshold !== 10) {
+      // through to normal results. Match on the urgency level name rather
+      // than a hardcoded scoreThreshold so admins can tune thresholds in
+      // the CMS without breaking the Foursquare routing flow. The API
+      // returns the localized name, so we accept both English ("Urgent")
+      // and Spanish ("Urgente").
+      const urgencyName = parsed.urgencyLevel?.name
+      if (urgencyName !== 'Urgent' && urgencyName !== 'Urgente') {
         router.replace(`/${locale}/results`)
         return
       }
@@ -169,7 +173,11 @@ export function LocationScreenClient({ locale }: Props) {
       <p className="text-gray-700 dark:text-gray-300 mb-6">{t('body')}</p>
 
       {status === 'searching' ? (
-        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4 text-sm text-blue-900 dark:text-blue-100">
+        <div
+          role="status"
+          aria-live="polite"
+          className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4 text-sm text-blue-900 dark:text-blue-100"
+        >
           {t('searching')}
         </div>
       ) : (

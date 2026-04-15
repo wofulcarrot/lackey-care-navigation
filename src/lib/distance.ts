@@ -90,12 +90,6 @@ const ZIP_CENTROIDS: Record<string, { lat: number; lon: number }> = {
   '23438': { lat: 36.6094, lon: -76.5967 },
 }
 
-/** Synchronous lookup — only returns a hit for Hampton Roads ZIPs. */
-export function lookupZip(zip: string): { lat: number; lon: number } | null {
-  const cleaned = zip.trim().slice(0, 5)
-  return ZIP_CENTROIDS[cleaned] ?? null
-}
-
 /**
  * Async lookup that supports ANY US ZIP code.
  * - Fast path: Hampton Roads centroids (local lookup, zero network)

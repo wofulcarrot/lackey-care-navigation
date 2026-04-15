@@ -20,7 +20,6 @@ export interface NearbyUrgentCare {
   }
   phone?: string
   website?: string
-  cost?: 'insurance_required'
   /** Distance in meters from the query point */
   distanceMeters?: number
   /** Always active (we don't know hours from FSQ search endpoint alone) */
@@ -109,8 +108,7 @@ export async function searchNearbyUrgentCares(
   }
 
   if (!res.ok) {
-    const text = await res.text().catch(() => '')
-    console.error(`[foursquare] ${res.status} ${res.statusText}: ${text.slice(0, 200)}`)
+    console.error(`[foursquare] HTTP ${res.status} ${res.statusText}`)
     return null
   }
 
@@ -135,23 +133,24 @@ export async function searchNearbyUrgentCares(
 }
 
 /**
- * Heuristic: the place's name or chain indicates it's a healthcare provider.
- * Foursquare's 'urgent care' query occasionally returns things like
- * libraries or shopping centers nearby; this filter is the final gate.
+ * Heuristic: reject places whose name obviously isn't a healthcare provider.
+ *
+ * Because the Foursquare query itself is `query=urgent care` (high-precision),
+ * we use a DENYLIST rather than an allowlist: accept everything by default and
+ * drop only results that look like unrelated POIs (libraries, restaurants, etc.).
+ * An allowlist was previously used but was too restrictive — legitimate clinics
+ * with unusual names (e.g., "Tidewater Pediatric Urgent Care", "WellNow Urgent
+ * Care") were being dropped because they didn't match any known token.
  */
 function isLikelyHealthcare(p: FsqPlace): boolean {
   const name = (p.name || '').toLowerCase()
-  // Positive signals: common urgent care chains + obvious keywords
-  const healthcareTokens = [
-    'urgent care', 'urgentcare',
-    'medexpress', 'medcare', 'medical',
-    'patient first', 'afc urgent', 'afc doctor', 'velocity urgent',
-    'concentra', 'fastmed', 'nextcare', 'sentara', 'citymd', 'carenow',
-    'clinic', 'walk-in', 'walk in', 'health center', 'healthcare',
-    'immediate care', 'acute care', 'minuteclinic', 'care now',
-    'physician', 'doctor', 'er express',
+  const nonHealthcareTokens = [
+    'library', 'pizza', 'restaurant', 'cafe', 'coffee',
+    'boutique', 'salon', 'spa', 'gym', 'bar', 'theater',
+    'mall', 'store', 'parking', 'hotel', 'market',
+    'school', 'church', 'park', 'stadium',
   ]
-  return healthcareTokens.some((token) => name.includes(token))
+  return !nonHealthcareTokens.some((token) => name.includes(token))
 }
 
 function normalizeFsqPlace(p: FsqPlace): NearbyUrgentCare {
@@ -179,7 +178,8 @@ function normalizeFsqPlace(p: FsqPlace): NearbyUrgentCare {
     },
     phone,
     website,
-    cost: 'insurance_required',
+    // cost intentionally omitted — many urgent cares accept self-pay,
+    // and we don't know the individual facility's policy from FSQ data.
     distanceMeters: p.distance,
     isActive: true,
     description: 'Walk-in urgent care. Call ahead to confirm self-pay rates.',

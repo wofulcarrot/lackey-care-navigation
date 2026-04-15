@@ -57,10 +57,15 @@ export function TriageClient({
       .then((r) => r.json())
       .then((data) => {
         sessionStorage.setItem('triageResult', JSON.stringify(data))
-        // When urgency is Urgent (threshold 10), route through the location
-        // screen so we can swap in real nearby urgent cares via Foursquare.
-        // All other urgency levels proceed directly to results as before.
-        const isUrgent = data?.urgencyLevel?.scoreThreshold === 10
+        // When urgency is Urgent, route through the location screen so we
+        // can swap in real nearby urgent cares via Foursquare. All other
+        // urgency levels proceed directly to results as before. We match
+        // on the urgency level name rather than a hardcoded scoreThreshold
+        // so admins can tune thresholds in the CMS without breaking this
+        // flow. The evaluate API returns the localized name, so we check
+        // both English ("Urgent") and Spanish ("Urgente").
+        const urgencyName = data?.urgencyLevel?.name
+        const isUrgent = urgencyName === 'Urgent' || urgencyName === 'Urgente'
         if (isUrgent && !data?.escalate) {
           router.push(`/${locale}/location`)
         } else {

@@ -44,7 +44,13 @@ const nextConfig: NextConfig = {
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: blob: https:",
           "font-src 'self' data:",
-          "connect-src 'self' https://luca.zipnosis.com https://*.tile.openstreetmap.org",
+          // connect-src: browser-side fetches. Must include:
+          // - 'self' (our own API routes)
+          // - luca.zipnosis.com (virtual care partner embed)
+          // - *.tile.openstreetmap.org (Leaflet map tiles)
+          // - api.zippopotam.us (ZIP -> lat/lon lookup used by lookupZipAnywhere
+          //   in src/lib/distance.ts for the "Find closest to me" flow).
+          "connect-src 'self' https://luca.zipnosis.com https://*.tile.openstreetmap.org https://api.zippopotam.us",
           "frame-ancestors 'none'",
           "base-uri 'self'",
           "form-action 'self'",
@@ -62,7 +68,10 @@ const nextConfig: NextConfig = {
           { key: 'Content-Security-Policy', value: csp },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            // geolocation=(self) allows same-origin use of the Geolocation API
+            // (powers the "Find closest to me" button). An empty () would block
+            // ALL origins including self, silently breaking GPS lookup.
+            value: 'camera=(), microphone=(), geolocation=(self)',
           },
         ],
       },

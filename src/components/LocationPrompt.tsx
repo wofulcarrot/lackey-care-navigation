@@ -51,7 +51,11 @@ export function LocationPrompt({ onLocate }: Props) {
 
   if (mode === 'requesting') {
     return (
-      <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4 text-sm text-blue-900 dark:text-blue-100">
+      <div
+        role="status"
+        aria-live="polite"
+        className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4 text-sm text-blue-900 dark:text-blue-100"
+      >
         {t('locating')}
       </div>
     )
@@ -59,7 +63,11 @@ export function LocationPrompt({ onLocate }: Props) {
 
   if (mode === 'zipLookingUp') {
     return (
-      <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4 text-sm text-blue-900 dark:text-blue-100">
+      <div
+        role="status"
+        aria-live="polite"
+        className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4 text-sm text-blue-900 dark:text-blue-100"
+      >
         {t('zipLookingUp')}
       </div>
     )
