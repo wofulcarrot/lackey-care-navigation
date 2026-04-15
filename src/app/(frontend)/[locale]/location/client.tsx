@@ -87,8 +87,16 @@ export function LocationScreenClient({ locale }: Props) {
       })
       const data = await res.json().catch(() => ({}))
 
+      // The patient went out of their way to share their location for in-
+      // person urgent care, so skip the Virtual Care interstitial on the
+      // results page — they want a clinic, not a video visit. Lackey Virtual
+      // Care is still preserved at the bottom of the resource list as a
+      // backup option.
+      const baseResult: TriageResult = { ...result, virtualCareEligible: false }
+
       // If we got real Foursquare results, replace the seeded urgent cares.
       // Otherwise fall through with the existing seeded list.
+      let nextResult = baseResult
       if (Array.isArray(data.resources) && data.resources.length > 0 && !data.fallback) {
         // Preserve any virtual-care / phone-only resources from the original
         // result (Lackey Virtual Care, Crisis Line) and put them after the
@@ -96,23 +104,36 @@ export function LocationScreenClient({ locale }: Props) {
         const preservedNonUrgent = result.resources.filter(
           (r) => r.type && r.type !== 'urgent_care',
         )
-        const nextResult: TriageResult = {
-          ...result,
+        nextResult = {
+          ...baseResult,
           resources: [...data.resources, ...preservedNonUrgent],
         }
-        sessionStorage.setItem('triageResult', JSON.stringify(nextResult))
       }
+      sessionStorage.setItem('triageResult', JSON.stringify(nextResult))
+
       // In all paths (success, empty, or fallback) we proceed to results
       // with a non-empty list — either the freshly fetched or the seeded one.
       router.push(`/${locale}/results`)
     } catch {
-      // Network failure → keep seeded resources, proceed to results
+      // Network failure → save the result with virtualCareEligible=false so
+      // the patient still lands on the resource list (not the interstitial),
+      // even though we couldn't swap in Foursquare data. Seeded urgent cares
+      // are kept.
+      const fallbackResult: TriageResult = { ...result, virtualCareEligible: false }
+      sessionStorage.setItem('triageResult', JSON.stringify(fallbackResult))
       router.push(`/${locale}/results`)
     }
   }
 
   function handleSkip() {
-    // Patient declined to share location → use seeded resources as-is
+    // Patient declined to share location but they're still in the Urgent
+    // flow — they need to see the urgent-care resource list directly, not
+    // the Virtual Care interstitial. Keep the seeded urgent cares; just
+    // disable the interstitial gate.
+    if (result) {
+      const nextResult: TriageResult = { ...result, virtualCareEligible: false }
+      sessionStorage.setItem('triageResult', JSON.stringify(nextResult))
+    }
     router.push(`/${locale}/results`)
   }
 
