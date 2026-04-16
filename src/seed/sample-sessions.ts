@@ -36,6 +36,18 @@ function pickHour(): number {
 }
 
 async function main() {
+  // SAFETY: this script writes ~hundreds of fake triage rows and is intended
+  // ONLY for demo / dashboard-preview environments. Refuse to run if
+  // NODE_ENV=production so an operator cannot accidentally pollute the live
+  // analytics database by running `npm run seed:sample` against prod.
+  if (process.env.NODE_ENV === 'production') {
+    console.error(
+      '[sample-sessions] Refusing to run: NODE_ENV=production. ' +
+        'This script generates fake analytics data and must not run against a production database.',
+    )
+    process.exit(1)
+  }
+
   const payload = await getPayload({ config })
 
   const careTypesRes = await payload.find({ collection: 'care-types', limit: 100 })

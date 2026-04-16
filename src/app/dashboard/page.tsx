@@ -9,6 +9,7 @@ import { PacingCard } from './components/PacingCard'
 import { ReachCard } from './components/ReachCard'
 import { HourlyHeatmap } from './components/HourlyHeatmap'
 import ReferralMap from './components/ReferralMapClient'
+import { ExportButton } from './components/ExportButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,12 +24,40 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <DateRangePicker currentStart={data.dateRange.start} currentEnd={data.dateRange.end} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <DateRangePicker currentStart={data.dateRange.start} currentEnd={data.dateRange.end} />
+        <ExportButton
+          data={{
+            dateRange: {
+              start: data.dateRange.start.toISOString(),
+              end: data.dateRange.end.toISOString(),
+            },
+            days: data.days,
+            totalSessions: data.totalSessions,
+            completedCount: data.completedCount,
+            completedRate: data.completedRate,
+            virtualCount: data.virtualCount,
+            emergencyCount: data.emergencyCount,
+            crisisCount: data.crisisCount,
+            inPersonCount: data.inPersonCount,
+            abandonedCount: data.abandonedCount,
+            routingMix: data.routingMix.map(({ name, count }) => ({ name, count })),
+            careTypeBreakdown: data.careTypeBreakdown,
+            urgencyBreakdown: data.urgencyBreakdown,
+            languageBreakdown: data.languageBreakdown,
+            deviceBreakdown: data.deviceBreakdown,
+            dailyTrend: data.dailyTrend,
+            hourlyHeatmap: data.hourlyHeatmap,
+            topPartners: data.topPartners,
+            virtualPacing: data.virtualPacing,
+          }}
+        />
+      </div>
 
       {/* Headline tiles */}
       <section
         aria-label="Headline metrics"
-        className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
       >
         <MetricTile
           label="Users served"
@@ -48,10 +77,16 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           tone="success"
         />
         <MetricTile
-          label="Emergency redirects"
+          label="Emergency (911)"
           value={data.emergencyCount.toLocaleString()}
           sublabel="Sent to ED / 911"
           tone={data.emergencyCount > 0 ? 'danger' : 'neutral'}
+        />
+        <MetricTile
+          label="Crisis (988)"
+          value={data.crisisCount.toLocaleString()}
+          sublabel="Routed to 988 Lifeline / CSB"
+          tone={data.crisisCount > 0 ? 'danger' : 'neutral'}
         />
       </section>
 

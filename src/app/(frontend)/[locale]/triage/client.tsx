@@ -7,15 +7,18 @@ import { useTriage } from '@/hooks/useTriage'
 import { QuestionCard } from '@/components/QuestionCard'
 import { ProgressBar } from '@/components/ProgressBar'
 import { EmergencyAlert } from '@/components/EmergencyAlert'
+import { CrisisAlert } from '@/components/CrisisAlert'
 
 interface Props {
   careTypeId: string
+  careTypeName: string
   questions: any[]
   questionSetVersion: number
 }
 
 export function TriageClient({
   careTypeId,
+  careTypeName,
   questions,
   questionSetVersion,
 }: Props) {
@@ -56,8 +59,21 @@ export function TriageClient({
     })
       .then((r) => r.json())
       .then((data) => {
-        const encoded = encodeURIComponent(JSON.stringify(data))
-        router.push(`/${locale}/results?data=${encoded}`)
+        sessionStorage.setItem('triageResult', JSON.stringify(data))
+        // When urgency is Urgent, route through the location screen so we
+        // can swap in real nearby urgent cares via Foursquare. All other
+        // urgency levels proceed directly to results as before. We match
+        // on the urgency level name rather than a hardcoded scoreThreshold
+        // so admins can tune thresholds in the CMS without breaking this
+        // flow. The evaluate API returns the localized name, so we check
+        // both English ("Urgent") and Spanish ("Urgente").
+        const urgencyName = data?.urgencyLevel?.name
+        const isUrgent = urgencyName === 'Urgent' || urgencyName === 'Urgente'
+        if (isUrgent && !data?.escalate) {
+          router.push(`/${locale}/location`)
+        } else {
+          router.push(`/${locale}/results`)
+        }
       })
       .catch(() => {
         router.push(`/${locale}/results?fallback=true`)
@@ -65,7 +81,15 @@ export function TriageClient({
   }, [triage.completed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Early returns AFTER all hooks (React rules of hooks)
-  if (triage.escalated) return <EmergencyAlert />
+  // Behavioral Health escalation shows the dedicated suicide prevention
+  // screen (988 Lifeline + Crisis Text Line + CSB) instead of the generic
+  // 911 EmergencyAlert. All other care types keep the 911 path.
+  if (triage.escalated) {
+    const isBehavioralHealth =
+      careTypeName === 'Behavioral Health' ||
+      careTypeName === 'Salud mental' // Spanish locale name
+    return isBehavioralHealth ? <CrisisAlert /> : <EmergencyAlert />
+  }
   if (!triage.currentQuestion) return null
 
   return (

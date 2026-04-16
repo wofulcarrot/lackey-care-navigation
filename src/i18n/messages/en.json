@@ -34,6 +34,38 @@
     "startOver": "Start over",
     "temporaryNotice": "Notice"
   },
+  "location": {
+    "findClosest": "Find closest to me",
+    "locating": "Finding your location...",
+    "zipPrompt": "Enter your ZIP code to find the closest options",
+    "zipSubmit": "Find",
+    "zipLookingUp": "Looking up your ZIP code...",
+    "zipInvalid": "Please enter a 5-digit ZIP code.",
+    "zipNotFound": "That ZIP code wasn't found. Double-check the digits and try again."
+  },
+  "crisis": {
+    "heading": "Suicide Prevention",
+    "body": "Talk to someone now. You are not alone, and help is available right now.",
+    "lifelineTitle": "988 Suicide & Crisis Lifeline",
+    "lifelineBody": "Available 24/7 across the United States. Free and confidential for everyone.",
+    "call988": "Call 988",
+    "text988": "Text 988",
+    "textLineTitle": "Crisis Text Line",
+    "textLineBody": "Free, 24/7 support via text message.",
+    "textAskus": "Text ASKUS to 741741",
+    "csbTitle": "Local Crisis Services",
+    "csbBody": "Each Community Services Board (CSB) has 24-hour emergency services.",
+    "findCsb": "Find Your Nearest CSB",
+    "call911": "Call 911 for immediate danger",
+    "goBack": "Go back to my questions"
+  },
+  "locationScreen": {
+    "heading": "You need urgent care soon",
+    "body": "Share your location and we'll find the closest urgent care facilities within 10 miles.",
+    "searching": "Finding the nearest urgent care near you…",
+    "skip": "Skip — show me general options",
+    "privacyNote": "Your location is used only to find nearby care. It is not saved or shared."
+  },
   "disclaimers": {
     "heading": "Important Information",
     "notEmergency": "This is not a replacement for emergency services. If you are experiencing a medical emergency, call 911.",
@@ -47,6 +79,8 @@
     "poweredBy": "Powered by Lackey Clinic",
     "translationPending": "Translation pending",
     "errorTitle": "We're having trouble loading this page",
-    "startVirtualVisit": "Start Free Virtual Visit"
+    "startVirtualVisit": "Start Free Virtual Visit",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
   }
 }

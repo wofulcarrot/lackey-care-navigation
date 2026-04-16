@@ -1,0 +1,171 @@
+/**
+ * Lackey Care Navigation — Admin theme overrides
+ *
+ * Strategy: Use Payload's own --color-* CSS custom properties that are
+ * defined in @layer payload-default. Overriding them at :root (unlayered)
+ * has the highest specificity and cleanly cascades through all of Payload's
+ * internal styles without breaking anything.
+ *
+ * DO NOT wrap rules in @layer — Payload's layer ordering is load-bearing.
+ */
+
+/* ============================================================== */
+/* BRAND COLOR — remap Payload's "success" scale to Lackey teal.   */
+/* This tints every primary button, active nav, focus ring, etc. */
+/* ============================================================== */
+:root {
+  --color-success-50:  rgb(240, 247, 250);
+  --color-success-100: rgb(222, 237, 245);
+  --color-success-150: rgb(197, 223, 236);
+  --color-success-200: rgb(169, 207, 225);
+  --color-success-250: rgb(139, 189, 212);
+  --color-success-300: rgb(108, 170, 197);
+  --color-success-350: rgb(79, 150, 180);
+  --color-success-400: rgb(54, 131, 162);
+  --color-success-450: rgb(40, 114, 144);
+  --color-success-500: rgb(27, 79, 114);   /* Lackey deep teal */
+  --color-success-550: rgb(23, 68, 99);
+  --color-success-600: rgb(20, 58, 85);
+  --color-success-650: rgb(17, 48, 71);
+  --color-success-700: rgb(14, 40, 59);
+  --color-success-750: rgb(12, 33, 49);
+  --color-success-800: rgb(10, 26, 40);
+  --color-success-850: rgb(8, 21, 32);
+  --color-success-900: rgb(6, 16, 24);
+  --color-success-950: rgb(4, 11, 17);
+}
+
+/* ============================================================== */
+/* LAYOUT — desktop-first content width                            */
+/* Payload's default gutter is narrow; widen it for desktop use.   */
+/* ============================================================== */
+@media (min-width: 1200px) {
+  .template-default .gutter,
+  .template-minimal .gutter {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ============================================================== */
+/* TYPOGRAPHY — slightly larger base for desktop readability       */
+/* ============================================================== */
+body {
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================== */
+/* NAV GROUPS — more distinct section headers                      */
+/* ============================================================== */
+.nav-group__label,
+.nav__label {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--theme-elevation-500);
+  padding-top: 16px;
+  padding-bottom: 6px;
+}
+
+/* ============================================================== */
+/* DESCRIPTIONS — friendlier help text color                       */
+/* ============================================================== */
+.view-description,
+.collection-description,
+.global-description,
+.field-description {
+  color: var(--theme-elevation-600);
+  line-height: 1.5;
+  max-width: 820px;
+}
+
+/* ============================================================== */
+/* BUTTONS — smoother primary button                               */
+/* ============================================================== */
+.btn--style-primary {
+  font-weight: 500;
+  transition: transform 0.1s, box-shadow 0.1s;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* ============================================================== */
+/* LIST TABLE HOVER — subtle brand-teal row highlight              */
+/* ============================================================== */
+.table tbody tr:hover {
+  background: var(--theme-success-50);
+}
+
+/* ============================================================== */
+/* FORM INPUT FOCUS — branded focus ring                           */
+/* ============================================================== */
+input[type='text']:focus,
+input[type='email']:focus,
+input[type='password']:focus,
+input[type='number']:focus,
+input[type='date']:focus,
+input[type='url']:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--theme-success-400);
+  box-shadow: 0 0 0 3px var(--theme-success-100);
+  outline: none;
+}
+
+/* ============================================================== */
+/* TABS — branded active indicator (CareResources, StaticContent)  */
+/* ============================================================== */
+.tabs-field__tab-button--active {
+  color: var(--theme-success-500);
+  border-bottom-color: var(--theme-success-500);
+}
+
+/* ============================================================== */
+/* DASHBOARD CARDS on /admin home                                  */
+/* ============================================================== */
+.dashboard__card,
+.dashboard__group-item {
+  border-radius: 10px;
+  border: 1px solid var(--theme-elevation-100);
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.12s;
+
+  &:hover {
+    border-color: var(--theme-success-300);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+  }
+}
+
+.dashboard__label {
+  font-weight: 600;
+  color: var(--theme-elevation-800);
+}
+
+/* ============================================================== */
+/* SCROLLBAR — subtle                                              */
+/* ============================================================== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-elevation-50);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-elevation-200);
+  border-radius: 10px;
+  border: 2px solid var(--theme-elevation-50);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-elevation-300);
+}

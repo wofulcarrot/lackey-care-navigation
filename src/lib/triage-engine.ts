@@ -36,7 +36,7 @@ export function classifyUrgency(
 ): UrgencyLevel | null {
   if (levels.length === 0) return null
   const sorted = [...levels].sort((a, b) => b.scoreThreshold - a.scoreThreshold)
-  return sorted.find((level) => score >= level.scoreThreshold) ?? null
+  return sorted.find((level) => score >= level.scoreThreshold) ?? sorted[sorted.length - 1]
 }
 
 export function resolveNextQuestion(

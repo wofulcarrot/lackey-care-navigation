@@ -34,6 +34,38 @@
     "startOver": "Comenzar de nuevo",
     "temporaryNotice": "Aviso"
   },
+  "location": {
+    "findClosest": "Encontrar lo más cercano",
+    "locating": "Buscando su ubicación...",
+    "zipPrompt": "Ingrese su código postal para encontrar las opciones más cercanas",
+    "zipSubmit": "Buscar",
+    "zipLookingUp": "Buscando su código postal...",
+    "zipInvalid": "Por favor ingrese un código postal de 5 dígitos.",
+    "zipNotFound": "No se encontró ese código postal. Verifique los dígitos e intente de nuevo."
+  },
+  "crisis": {
+    "heading": "Prevención del Suicidio",
+    "body": "Hable con alguien ahora. No está solo/a, y hay ayuda disponible en este momento.",
+    "lifelineTitle": "988 Línea de Prevención del Suicidio y Crisis",
+    "lifelineBody": "Disponible 24/7 en todo Estados Unidos. Gratis y confidencial para todos.",
+    "call988": "Llamar al 988",
+    "text988": "Enviar texto al 988",
+    "textLineTitle": "Línea de Crisis por Texto",
+    "textLineBody": "Apoyo gratuito 24/7 por mensaje de texto.",
+    "textAskus": "Enviar ASKUS al 741741",
+    "csbTitle": "Servicios Locales de Crisis",
+    "csbBody": "Cada Junta de Servicios Comunitarios (CSB) tiene servicios de emergencia las 24 horas.",
+    "findCsb": "Encuentre su CSB más cercano",
+    "call911": "Llame al 911 en caso de peligro inmediato",
+    "goBack": "Volver a mis preguntas"
+  },
+  "locationScreen": {
+    "heading": "Necesita atención de urgencia pronto",
+    "body": "Comparta su ubicación y encontraremos los centros de atención de urgencia más cercanos dentro de 10 millas.",
+    "searching": "Buscando la atención de urgencia más cercana a usted…",
+    "skip": "Omitir — mostrarme opciones generales",
+    "privacyNote": "Su ubicación se usa solo para encontrar atención cercana. No se guarda ni se comparte."
+  },
   "disclaimers": {
     "heading": "Información Importante",
     "notEmergency": "Esto no reemplaza los servicios de emergencia. Si está experimentando una emergencia médica, llame al 911.",
@@ -47,6 +79,8 @@
     "poweredBy": "Desarrollado por Lackey Clinic",
     "translationPending": "Traducción pendiente",
     "errorTitle": "Tenemos problemas para cargar esta página",
-    "startVirtualVisit": "Iniciar visita virtual gratuita"
+    "startVirtualVisit": "Iniciar visita virtual gratuita",
+    "switchToDark": "Cambiar a modo oscuro",
+    "switchToLight": "Cambiar a modo claro"
   }
 }

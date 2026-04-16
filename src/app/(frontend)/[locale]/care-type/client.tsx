@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { CareTypeCard } from '@/components/CareTypeCard'
 
@@ -17,9 +18,15 @@ export function CareTypeSelectionClient({ careTypes }: { careTypes: CareType[] }
   const t = useTranslations('careType')
   const locale = useLocale()
 
+  useEffect(() => {
+    if (!sessionStorage.getItem('emergencyScreenCompleted')) {
+      router.replace(`/${locale}/emergency`)
+    }
+  }, [router, locale])
+
   return (
     <div className="px-4 py-6">
-      <h1 className="text-2xl font-bold mb-6">{t('title')}</h1>
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">{t('title')}</h1>
       <div className="flex flex-col gap-3">
         {careTypes.map((ct) => (
           <CareTypeCard

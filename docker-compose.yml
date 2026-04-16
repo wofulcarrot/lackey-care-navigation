@@ -1,0 +1,74 @@
+# =============================================================================
+# Lackey Care Navigation — Docker Compose
+#
+# Starts the application + PostgreSQL database.
+#
+# Quick start:
+#   1. Copy .env.example to .env and fill in real values
+#   2. docker compose up -d
+#   3. docker compose exec app npm run seed   (first run only)
+#   4. Open http://localhost:3000
+#
+# The PostgreSQL data persists in a named volume (lackey_pgdata) so it
+# survives container restarts. To reset: docker compose down -v
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 17
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lackey_care_navigation
+      POSTGRES_USER: lackey
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-lackey-dev-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - lackey_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lackey -d lackey_care_navigation"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # Lackey Care Navigation App (Next.js + Payload CMS)
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Build-time placeholders. Real values come from runtime env below.
+        PAYLOAD_SECRET: build-time-placeholder
+        DATABASE_URI: postgresql://lackey:${DB_PASSWORD:-lackey-dev-password}@db:5432/lackey_care_navigation
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URI: postgresql://lackey:${DB_PASSWORD:-lackey-dev-password}@db:5432/lackey_care_navigation
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET is required}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      # Dashboard Basic Auth (required in production — see docs/environment-setup.md)
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:?DASHBOARD_USERNAME is required}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:?DASHBOARD_PASSWORD is required}
+      # Optional: Foursquare Places API for nearby urgent care search.
+      # If unset, the feature gracefully falls back to the seeded provider list.
+      FOURSQUARE_API_KEY: ${FOURSQUARE_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  lackey_pgdata:
+    driver: local

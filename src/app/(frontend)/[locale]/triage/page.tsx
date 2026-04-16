@@ -12,7 +12,12 @@ export default async function TriagePage({
   searchParams: Promise<{ careType?: string }>
 }) {
   const { locale } = await params
-  const { careType: careTypeId } = await searchParams
+  const { careType: careTypeIdRaw } = await searchParams
+
+  // Defensive: reject malformed care type IDs (e.g. "[object Object]" or "NaN"
+  // from a bad client-side URL interpolation). Postgres numeric casts would
+  // throw a 500 otherwise.
+  const careTypeId = careTypeIdRaw?.match(/^[A-Za-z0-9_-]{1,64}$/) ? careTypeIdRaw : null
   if (!careTypeId) return <ErrorFallback />
 
   const payload = await getPayload({ config })
@@ -36,9 +41,16 @@ export default async function TriagePage({
     redirect(`/${locale}/results?fallback=true`)
   }
 
+  // Extract the care type name so the client can choose the right
+  // escalation screen (CrisisAlert for Behavioral Health, EmergencyAlert
+  // for everything else). With depth: 2, careType is populated as an object.
+  const careTypeObj = questionSet.careType as { name?: string } | undefined
+  const careTypeName = typeof careTypeObj === 'object' ? (careTypeObj?.name ?? '') : ''
+
   return (
     <TriageClient
       careTypeId={careTypeId}
+      careTypeName={careTypeName}
       questions={questionSet.questions as any}
       questionSetVersion={questionSet.version}
     />

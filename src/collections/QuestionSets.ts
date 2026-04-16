@@ -2,8 +2,12 @@ import type { CollectionConfig } from 'payload'
 
 export const QuestionSets: CollectionConfig = {
   slug: 'question-sets',
+  labels: { singular: 'Question Set', plural: 'Question Sets' },
   admin: {
-    description: 'Versioned groups of triage questions. Only one active set per care type.',
+    defaultColumns: ['careType', 'version', 'isActive'],
+    group: 'Triage Logic',
+    description: 'Versioned bundles of questions per care type. Create a new version to test clinical changes without touching the live flow; toggle "isActive" when ready to ship.',
+    pagination: { defaultLimit: 25 },
   },
   access: {
     read: () => true,

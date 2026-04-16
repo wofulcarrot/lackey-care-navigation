@@ -1,4 +1,3 @@
-// @ts-nocheck — seed script runs via tsx, not tsc
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
@@ -52,7 +51,7 @@ async function seed() {
       data: {
         heroTitle: 'Get the right care, right now',
         heroSubtitle: 'Free help finding the care you need — no insurance required',
-        virtualCareUrl: 'https://www.lackeyhealthcare.org/virtual-care',
+        virtualCareUrl: 'https://luca.zipnosis.com/guest_visits/new?l=en',
         virtualCareHeading: 'You may be able to get free care right now',
         virtualCareBullets: [
           { text: 'Free for adults 18+' },
