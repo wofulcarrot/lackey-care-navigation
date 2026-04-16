@@ -43,6 +43,22 @@
     "zipInvalid": "Please enter a 5-digit ZIP code.",
     "zipNotFound": "That ZIP code wasn't found. Double-check the digits and try again."
   },
+  "crisis": {
+    "heading": "Suicide Prevention",
+    "body": "Talk to someone now. You are not alone, and help is available right now.",
+    "lifelineTitle": "988 Suicide & Crisis Lifeline",
+    "lifelineBody": "Available 24/7 across the United States. Free and confidential for everyone.",
+    "call988": "Call 988",
+    "text988": "Text 988",
+    "textLineTitle": "Crisis Text Line",
+    "textLineBody": "Free, 24/7 support via text message.",
+    "textAskus": "Text ASKUS to 741741",
+    "csbTitle": "Local Crisis Services",
+    "csbBody": "Each Community Services Board (CSB) has 24-hour emergency services.",
+    "findCsb": "Find Your Nearest CSB",
+    "call911": "Call 911 for immediate danger",
+    "goBack": "Go back to my questions"
+  },
   "locationScreen": {
     "heading": "You need urgent care soon",
     "body": "Share your location and we'll find the closest urgent care facilities within 10 miles.",

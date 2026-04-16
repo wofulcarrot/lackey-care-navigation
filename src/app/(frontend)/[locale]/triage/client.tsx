@@ -7,15 +7,18 @@ import { useTriage } from '@/hooks/useTriage'
 import { QuestionCard } from '@/components/QuestionCard'
 import { ProgressBar } from '@/components/ProgressBar'
 import { EmergencyAlert } from '@/components/EmergencyAlert'
+import { CrisisAlert } from '@/components/CrisisAlert'
 
 interface Props {
   careTypeId: string
+  careTypeName: string
   questions: any[]
   questionSetVersion: number
 }
 
 export function TriageClient({
   careTypeId,
+  careTypeName,
   questions,
   questionSetVersion,
 }: Props) {
@@ -78,7 +81,15 @@ export function TriageClient({
   }, [triage.completed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Early returns AFTER all hooks (React rules of hooks)
-  if (triage.escalated) return <EmergencyAlert />
+  // Behavioral Health escalation shows the dedicated suicide prevention
+  // screen (988 Lifeline + Crisis Text Line + CSB) instead of the generic
+  // 911 EmergencyAlert. All other care types keep the 911 path.
+  if (triage.escalated) {
+    const isBehavioralHealth =
+      careTypeName === 'Behavioral Health' ||
+      careTypeName === 'Salud mental' // Spanish locale name
+    return isBehavioralHealth ? <CrisisAlert /> : <EmergencyAlert />
+  }
   if (!triage.currentQuestion) return null
 
   return (
