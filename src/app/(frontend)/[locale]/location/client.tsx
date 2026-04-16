@@ -83,6 +83,13 @@ export function LocationScreenClient({ locale }: Props) {
   async function handleLocate(loc: { lat: number; lon: number; source: 'gps' | 'zip' }) {
     if (!result) return
     setStatus('searching')
+
+    // Persist the patient's coordinates so the results page can display
+    // distances immediately without asking for location a second time.
+    try {
+      sessionStorage.setItem('triageUserLocation', JSON.stringify({ lat: loc.lat, lon: loc.lon }))
+    } catch { /* non-fatal */ }
+
     try {
       const res = await fetch('/api/triage/nearby-urgent-cares', {
         method: 'POST',

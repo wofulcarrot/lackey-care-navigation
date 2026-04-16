@@ -83,6 +83,22 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
     } catch {
       // fall through to ErrorFallback below
     }
+
+    // Auto-populate location from the /location screen. If the patient
+    // already shared their GPS/ZIP there, distances show immediately on
+    // the results page without asking again.
+    try {
+      const storedLoc = sessionStorage.getItem('triageUserLocation')
+      if (storedLoc) {
+        const loc = JSON.parse(storedLoc)
+        if (typeof loc.lat === 'number' && typeof loc.lon === 'number') {
+          setUserLoc({ lat: loc.lat, lon: loc.lon, source: 'gps' })
+        }
+      }
+    } catch {
+      // non-fatal — user just won't see distances auto-populated
+    }
+
     setHydrated(true)
   }, [isFallback])
 
@@ -114,16 +130,22 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
   const rawResources = Array.isArray(data.resources) ? data.resources : []
 
   // Compute distances if user shared location, then sort nearest first.
-  // Resources without coordinates (e.g., virtual care, crisis lines) sort last.
+  // For Foursquare-sourced resources, prefer the API's pre-computed
+  // distanceMeters (more accurate). For seeded resources, compute via
+  // Haversine. Resources without coordinates sort last.
   const resources = userLoc
     ? [...rawResources]
         .map((r) => {
+          // Use Foursquare's pre-computed distance if available
+          const fsqDist = typeof (r as any).distanceMeters === 'number'
+            ? (r as any).distanceMeters / 1609.34 // meters → miles
+            : undefined
           const lat = r.address?.latitude
           const lon = r.address?.longitude
-          const d = typeof lat === 'number' && typeof lon === 'number'
+          const haversineDist = typeof lat === 'number' && typeof lon === 'number'
             ? distanceMiles(userLoc.lat, userLoc.lon, lat, lon)
             : undefined
-          return { ...r, distanceMiles: d }
+          return { ...r, distanceMiles: fsqDist ?? haversineDist }
         })
         .sort((a, b) => {
           if (a.distanceMiles == null && b.distanceMiles == null) return 0
@@ -184,6 +206,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
             // so the next run starts clean from the landing page.
             try {
               sessionStorage.removeItem('triageResult')
+              sessionStorage.removeItem('triageUserLocation')
               sessionStorage.removeItem('emergencyScreenCompleted')
             } catch {
               // non-fatal
