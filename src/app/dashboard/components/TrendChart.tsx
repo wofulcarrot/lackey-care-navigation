@@ -40,13 +40,10 @@ export function TrendChart({
             contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}
           />
           <Legend verticalAlign="top" height={36} />
-          {/* Total as a faint background bar so you see the daily volume */}
-          <Bar dataKey="total" name="Total" fill="#e5e7eb" radius={[4, 4, 0, 0]} barSize={20} />
-          {/* Breakdown bars stacked on top of each other */}
-          <Bar dataKey="virtual" name="Virtual" stackId="breakdown" fill="#10b981" radius={[0, 0, 0, 0]} barSize={14} />
-          <Bar dataKey="inPerson" name="In-person" stackId="breakdown" fill="#3b82f6" radius={[0, 0, 0, 0]} barSize={14} />
-          <Bar dataKey="emergency" name="Emergency (911)" stackId="breakdown" fill="#ef4444" radius={[0, 0, 0, 0]} barSize={14} />
-          <Bar dataKey="crisis" name="Crisis (988)" stackId="breakdown" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={14} />
+          <Bar dataKey="virtual" name="Virtual" stackId="day" fill="#10b981" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="inPerson" name="In-person" stackId="day" fill="#3b82f6" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="emergency" name="Emergency (911)" stackId="day" fill="#ef4444" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="crisis" name="Crisis (988)" stackId="day" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
