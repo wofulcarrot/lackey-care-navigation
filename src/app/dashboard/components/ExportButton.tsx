@@ -19,6 +19,7 @@ interface ExportData {
   completedRate: number
   virtualCount: number
   emergencyCount: number
+  crisisCount: number
   inPersonCount: number
   abandonedCount: number
   routingMix: { name: string; count: number }[]
@@ -26,7 +27,7 @@ interface ExportData {
   urgencyBreakdown: { name: string; count: number }[]
   languageBreakdown: { locale: string; label: string; count: number; percent: number }[]
   deviceBreakdown: { device: string; label: string; count: number; percent: number }[]
-  dailyTrend: { date: string; total: number; virtual: number; inPerson: number; emergency: number }[]
+  dailyTrend: { date: string; total: number; virtual: number; inPerson: number; emergency: number; crisis: number }[]
   hourlyHeatmap: number[][]
   topPartners: PartnerPoint[]
   virtualPacing: { count: number; annualRate: number; target: number; percentOfTarget: number }
@@ -82,7 +83,8 @@ export function ExportButton({ data }: { data: ExportData }) {
         ['Completion rate (%)', data.completedRate],
         ['Virtual care', data.virtualCount],
         ['In-person routes', data.inPersonCount],
-        ['Emergency redirects', data.emergencyCount],
+        ['Emergency redirects (911)', data.emergencyCount],
+        ['Crisis events (988)', data.crisisCount],
         ['Abandoned', data.abandonedCount],
         ['Virtual pacing — annualized rate', data.virtualPacing.annualRate],
         ['Virtual pacing — target', data.virtualPacing.target],
@@ -135,11 +137,11 @@ export function ExportButton({ data }: { data: ExportData }) {
       // Section 6: Daily trend
       sections.push([csvEscape('=== DAILY TREND ===')])
       sections.push([
-        ['Date', 'Total', 'Virtual', 'In-person', 'Emergency'].map(csvEscape).join(','),
+        ['Date', 'Total', 'Virtual', 'In-person', 'Emergency (911)', 'Crisis (988)'].map(csvEscape).join(','),
       ])
       for (const d of data.dailyTrend) {
         sections.push([
-          [d.date, d.total, d.virtual, d.inPerson, d.emergency].map(csvEscape).join(','),
+          [d.date, d.total, d.virtual, d.inPerson, d.emergency, d.crisis].map(csvEscape).join(','),
         ])
       }
       sections.push([''])

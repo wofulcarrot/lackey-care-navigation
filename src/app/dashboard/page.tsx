@@ -38,6 +38,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             completedRate: data.completedRate,
             virtualCount: data.virtualCount,
             emergencyCount: data.emergencyCount,
+            crisisCount: data.crisisCount,
             inPersonCount: data.inPersonCount,
             abandonedCount: data.abandonedCount,
             routingMix: data.routingMix.map(({ name, count }) => ({ name, count })),
@@ -56,7 +57,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       {/* Headline tiles */}
       <section
         aria-label="Headline metrics"
-        className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
       >
         <MetricTile
           label="Users served"
@@ -76,10 +77,16 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           tone="success"
         />
         <MetricTile
-          label="Emergency redirects"
+          label="Emergency (911)"
           value={data.emergencyCount.toLocaleString()}
           sublabel="Sent to ED / 911"
           tone={data.emergencyCount > 0 ? 'danger' : 'neutral'}
+        />
+        <MetricTile
+          label="Crisis (988)"
+          value={data.crisisCount.toLocaleString()}
+          sublabel="Routed to 988 Lifeline / CSB"
+          tone={data.crisisCount > 0 ? 'danger' : 'neutral'}
         />
       </section>
 

@@ -18,6 +18,8 @@ export interface DashboardData {
   completedRate: number
   virtualCount: number
   emergencyCount: number
+  /** BH crisis events — patient disclosed self-harm and saw the 988 screen */
+  crisisCount: number
   inPersonCount: number
   abandonedCount: number
   routingMix: { name: string; count: number; color: string }[]
@@ -25,7 +27,7 @@ export interface DashboardData {
   urgencyBreakdown: { name: string; count: number }[]
   languageBreakdown: { locale: string; label: string; count: number; percent: number }[]
   deviceBreakdown: { device: string; label: string; count: number; percent: number }[]
-  dailyTrend: { date: string; total: number; virtual: number; inPerson: number; emergency: number }[]
+  dailyTrend: { date: string; total: number; virtual: number; inPerson: number; emergency: number; crisis: number }[]
   hourlyHeatmap: number[][] // 7 rows (Sun..Sat) × 24 cols (0..23)
   topPartners: { id: string | number; name: string; count: number; type?: string; latitude?: number; longitude?: number }[]
   virtualPacing: {
@@ -89,17 +91,32 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
   const totalSessions = docs.length
   const completedCount = docs.filter((d) => d.completedFlow).length
   const virtualCount = docs.filter((d) => d.completedFlow && d.virtualCareOffered && !d.emergencyScreenTriggered).length
-  const emergencyCount = docs.filter((d) => d.emergencyScreenTriggered).length
+
+  // Split emergency events into medical 911 escalations vs behavioral health
+  // crisis (988). A BH crisis is identified by emergencyScreenTriggered=true
+  // AND careTypeSelected being "Behavioral Health" / "Salud mental".
+  const allEmergency = docs.filter((d) => d.emergencyScreenTriggered)
+  const isBhCrisis = (d: typeof docs[0]) => {
+    const ct = d.careTypeSelected
+    if (!ct || typeof ct !== 'object' || !('name' in ct)) return false
+    const name = (ct as { name?: string }).name ?? ''
+    return name === 'Behavioral Health' || name === 'Salud mental'
+  }
+  const crisisCount = allEmergency.filter(isBhCrisis).length
+  // emergencyCount is everything else (medical 911 + pre-triage symptom screen)
+  const emergencyCount = allEmergency.length - crisisCount
+
   const inPersonCount = docs.filter(
     (d) => d.completedFlow && !d.virtualCareOffered && !d.emergencyScreenTriggered,
   ).length
-  const abandonedCount = totalSessions - completedCount - emergencyCount
+  const abandonedCount = totalSessions - completedCount - allEmergency.length
   const completedRate = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0
 
   const routingMix = [
     { name: 'Virtual care', count: virtualCount, color: '#10b981' },
     { name: 'In-person', count: inPersonCount, color: '#3b82f6' },
-    { name: 'Emergency', count: emergencyCount, color: '#ef4444' },
+    { name: 'Emergency (911)', count: emergencyCount, color: '#ef4444' },
+    { name: 'Crisis (988)', count: crisisCount, color: '#8b5cf6' },
   ].filter((r) => r.count > 0)
 
   // Care type breakdown
@@ -151,14 +168,14 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
   ]
 
   // Daily trend — fill every day in range so chart has no gaps
-  const dailyMap = new Map<string, { total: number; virtual: number; inPerson: number; emergency: number }>()
+  const dailyMap = new Map<string, { total: number; virtual: number; inPerson: number; emergency: number; crisis: number }>()
   const iter = new Date(range.start)
   iter.setHours(0, 0, 0, 0)
   const endDay = new Date(range.end)
   endDay.setHours(0, 0, 0, 0)
   while (iter <= endDay) {
     const key = iter.toISOString().slice(0, 10)
-    dailyMap.set(key, { total: 0, virtual: 0, inPerson: 0, emergency: 0 })
+    dailyMap.set(key, { total: 0, virtual: 0, inPerson: 0, emergency: 0, crisis: 0 })
     iter.setDate(iter.getDate() + 1)
   }
   for (const d of docs) {
@@ -166,8 +183,10 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
     const bucket = dailyMap.get(key)
     if (!bucket) continue
     bucket.total++
-    if (d.emergencyScreenTriggered) bucket.emergency++
-    else if (d.completedFlow && d.virtualCareOffered) bucket.virtual++
+    if (d.emergencyScreenTriggered) {
+      if (isBhCrisis(d)) bucket.crisis++
+      else bucket.emergency++
+    } else if (d.completedFlow && d.virtualCareOffered) bucket.virtual++
     else if (d.completedFlow) bucket.inPerson++
   }
   const dailyTrend = [...dailyMap.entries()].map(([date, v]) => ({ date, ...v }))
@@ -218,6 +237,7 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
     completedRate,
     virtualCount,
     emergencyCount,
+    crisisCount,
     inPersonCount,
     abandonedCount,
     routingMix,

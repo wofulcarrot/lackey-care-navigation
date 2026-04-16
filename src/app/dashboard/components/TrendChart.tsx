@@ -14,7 +14,7 @@ import {
 export function TrendChart({
   data,
 }: {
-  data: { date: string; total: number; virtual: number; inPerson: number; emergency: number }[]
+  data: { date: string; total: number; virtual: number; inPerson: number; emergency: number; crisis: number }[]
 }) {
   if (data.length === 0) {
     return (
@@ -44,6 +44,10 @@ export function TrendChart({
               <stop offset="5%" stopColor="#ef4444" stopOpacity={0.7} />
               <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05} />
             </linearGradient>
+            <linearGradient id="crisisG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.7} />
+              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.05} />
+            </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 11 }} />
@@ -52,7 +56,8 @@ export function TrendChart({
           <Legend verticalAlign="top" height={30} />
           <Area type="monotone" dataKey="virtual" name="Virtual" stackId="1" stroke="#10b981" fill="url(#virtualG)" />
           <Area type="monotone" dataKey="inPerson" name="In-person" stackId="1" stroke="#3b82f6" fill="url(#inPersonG)" />
-          <Area type="monotone" dataKey="emergency" name="Emergency" stackId="1" stroke="#ef4444" fill="url(#emergencyG)" />
+          <Area type="monotone" dataKey="emergency" name="Emergency (911)" stackId="1" stroke="#ef4444" fill="url(#emergencyG)" />
+          <Area type="monotone" dataKey="crisis" name="Crisis (988)" stackId="1" stroke="#8b5cf6" fill="url(#crisisG)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>

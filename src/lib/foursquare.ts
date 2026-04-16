@@ -27,12 +27,18 @@ export interface NearbyUrgentCare {
   description?: string
 }
 
+interface FsqCategory {
+  id: number
+  name: string
+}
+
 interface FsqPlace {
   fsq_place_id: string
   name: string
   tel?: string
   website?: string
   distance?: number
+  categories?: FsqCategory[]
   location?: {
     address?: string
     locality?: string
@@ -51,11 +57,16 @@ interface FsqResponse {
 
 const FSQ_ENDPOINT = 'https://places-api.foursquare.com/places/search'
 
-// Places API v3 uses a different category taxonomy than v2; its IDs are
-// not stable and have broken before. We get much more reliable results with
-// a text query. "urgent care" reliably returns urgent care clinics (and
-// occasionally a health center or two), and the client can filter further.
-const URGENT_CARE_QUERY = 'urgent care'
+// Foursquare Places API v3 category IDs for healthcare facilities.
+// Using categories + query together yields much better results than
+// query alone (which matches "care" in anything — dog care, lawn care, etc.)
+const HEALTHCARE_CATEGORIES = [
+  '15014', // Doctor's Office
+  '15016', // Hospital
+  '15028', // Medical Center
+  '15054', // Urgent Care Center
+].join(',')
+const URGENT_CARE_QUERY = 'urgent'
 
 /**
  * Search Foursquare Places for urgent care facilities near a lat/lng.
@@ -86,6 +97,7 @@ export async function searchNearbyUrgentCares(
   const params = new URLSearchParams({
     ll: `${lat.toFixed(6)},${lon.toFixed(6)}`,
     radius: String(radiusMeters),
+    categories: HEALTHCARE_CATEGORIES,
     query: URGENT_CARE_QUERY,
     limit: String(Math.min(Math.max(limit, 1), 50)),
     sort: 'DISTANCE',
@@ -133,24 +145,59 @@ export async function searchNearbyUrgentCares(
 }
 
 /**
- * Heuristic: reject places whose name obviously isn't a healthcare provider.
+ * Two-pass filter: REQUIRE at least one healthcare keyword AND reject
+ * obvious non-healthcare results.
  *
- * Because the Foursquare query itself is `query=urgent care` (high-precision),
- * we use a DENYLIST rather than an allowlist: accept everything by default and
- * drop only results that look like unrelated POIs (libraries, restaurants, etc.).
- * An allowlist was previously used but was too restrictive — legitimate clinics
- * with unusual names (e.g., "Tidewater Pediatric Urgent Care", "WellNow Urgent
- * Care") were being dropped because they didn't match any known token.
+ * The denylist-only approach (round 3) let through "TruGreen Lawn Care",
+ * "M & M Log Home Care", "InMotion Chiropractic" because those names
+ * don't match any deny token. A hybrid approach catches these:
+ * 1. The name must contain at least one healthcare-positive token, OR
+ * 2. The Foursquare result name literally contains "urgent care".
+ *
+ * We keep the denylist to reject obvious noise even if a positive matches
+ * (e.g., "Pizza Clinic" would match "clinic" but also "pizza" → rejected).
  */
 function isLikelyHealthcare(p: FsqPlace): boolean {
   const name = (p.name || '').toLowerCase()
+  const catNames = (p.categories ?? []).map((c) => c.name.toLowerCase())
+
+  // Category-level rejection — if Foursquare explicitly categorized this
+  // as a vet, pet service, etc., reject even if the name sounds medical.
+  // Catches "Furgent Care" (Veterinarian category) and similar.
+  const deniedCategories = ['veterinarian', 'pet', 'animal']
+  if (catNames.some((cn) => deniedCategories.some((dc) => cn.includes(dc)))) return false
+
+  // Name-level denylist — always reject these regardless of positive matches
   const nonHealthcareTokens = [
     'library', 'pizza', 'restaurant', 'cafe', 'coffee',
     'boutique', 'salon', 'spa', 'gym', 'bar', 'theater',
     'mall', 'store', 'parking', 'hotel', 'market',
     'school', 'church', 'park', 'stadium',
+    'lawn', 'landscaping', 'roofing', 'plumbing', 'hvac',
+    'auto', 'tire', 'car wash', 'pet', 'veterinar',
+    'chiropractic', 'chiropractor', 'acupunctur', 'massage',
+    'log home', 'home care', 'carpet', 'cleaning',
+    'insurance', 'attorney', 'legal', 'real estate',
   ]
-  return !nonHealthcareTokens.some((token) => name.includes(token))
+  if (nonHealthcareTokens.some((token) => name.includes(token))) return false
+
+  // If Foursquare categorized it as an Urgent Care Center, trust that.
+  if (catNames.some((cn) => cn.includes('urgent care'))) return true
+
+  // Otherwise, require at least one healthcare keyword in the name.
+  const healthcareTokens = [
+    'urgent care', 'urgentcare', 'urgent',
+    'clinic', 'medical', 'health center', 'healthcare',
+    'walk-in', 'walk in', 'immediate care', 'acute care',
+    'patient first', 'medexpress', 'medcare', 'nextcare',
+    'concentra', 'fastmed', 'carenow', 'citymd',
+    'afc', 'velocity', 'sentara', 'wellnow',
+    'minuteclinic', 'physician', 'doctor', 'md ',
+    'hospital', 'emergency', 'er express',
+    'family medicine', 'internal medicine',
+    'pediatric', 'primary care',
+  ]
+  return healthcareTokens.some((token) => name.includes(token))
 }
 
 function normalizeFsqPlace(p: FsqPlace): NearbyUrgentCare {
