@@ -24,7 +24,7 @@ export default async function LandingPage({
 
         <Link
           href={`/${locale}/virtual-care`}
-          className="block w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]"
+          className="block w-full bg-green-700 hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-400 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]"
         >
           {t('virtualCare')}
         </Link>
