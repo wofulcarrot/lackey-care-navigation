@@ -1,0 +1,40 @@
+# Dependencies (reinstalled in container)
+node_modules
+npm-debug.log*
+
+# Build output (rebuilt in container)
+.next
+out
+dist
+
+# Environment secrets (never bake into image)
+.env
+.env.local
+.env.*.local
+
+# Development files
+.git
+.gitignore
+*.md
+docs/
+tests/
+playwright-report/
+test-results/
+coverage/
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Docker (avoid recursive copy)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Build artifacts
+tsconfig.tsbuildinfo
+*.db
