@@ -1,7 +1,7 @@
 'use client'
 
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { ThemeToggle } from './ThemeToggle'
 import { track } from '@/lib/tracker'
 
@@ -10,12 +10,16 @@ export function Header() {
   const t = useTranslations('landing')
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   function switchLocale(newLocale: string) {
     track('language_toggle', { from: locale, to: newLocale })
     const segments = pathname.split('/')
     segments[1] = newLocale
-    router.replace(segments.join('/'))
+    // Preserve query params (e.g., ?careType=1 on the triage page)
+    const qs = searchParams.toString()
+    const newUrl = segments.join('/') + (qs ? `?${qs}` : '')
+    router.replace(newUrl)
   }
 
   return (
