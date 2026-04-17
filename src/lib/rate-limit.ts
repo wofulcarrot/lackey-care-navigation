@@ -10,7 +10,7 @@ const maxRequests = 30  // 30 requests per minute per IP
 const hits = new Map<string, number[]>()
 
 // Cleanup stale entries every 5 minutes to prevent memory leak
-setInterval(() => {
+const timer = setInterval(() => {
   const now = Date.now()
   for (const [key, timestamps] of hits) {
     const valid = timestamps.filter((t) => now - t < windowMs)
@@ -29,6 +29,7 @@ setInterval(() => {
     }
   }
 }, 300_000)
+if (typeof timer === 'object' && 'unref' in timer) timer.unref()
 
 export function rateLimit(ip: string): { allowed: boolean; remaining: number } {
   const now = Date.now()
@@ -44,8 +45,11 @@ export function rateLimit(ip: string): { allowed: boolean; remaining: number } {
   return { allowed: true, remaining: maxRequests - timestamps.length }
 }
 
-/** Extract the client IP from the request, preferring x-forwarded-for. */
+/** Extract the client IP from the request, preferring Vercel's trusted header. */
 export function getClientIp(request: Request, fallback = '127.0.0.1'): string {
+  // Vercel sets this header; clients cannot spoof it
+  const vercelIp = request.headers.get('x-vercel-forwarded-for')
+  if (vercelIp) return vercelIp.split(',')[0].trim()
   const forwarded = request.headers.get('x-forwarded-for')
   return forwarded?.split(',')[0]?.trim() || fallback
 }
