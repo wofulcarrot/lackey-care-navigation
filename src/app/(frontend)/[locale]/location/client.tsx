@@ -20,29 +20,11 @@ import { useTranslations } from 'next-intl'
 import { LocationPrompt } from '@/components/LocationPrompt'
 import { ErrorFallback } from '@/components/ErrorFallback'
 import { track } from '@/lib/tracker'
+import type { TriageResult } from '@/lib/types'
+import { SESSION_KEYS, isUrgentLevel } from '@/lib/constants'
 
 interface Props {
   locale: string
-}
-
-interface TriageResource {
-  id: string | number
-  name: string
-  type: string
-  address?: Record<string, unknown>
-  phone?: string
-  cost?: string
-  isActive?: boolean
-  [key: string]: unknown
-}
-
-interface TriageResult {
-  escalate?: boolean
-  urgencyLevel?: { id: string; name: string; scoreThreshold: number; color: string; timeToCare?: string }
-  resources: TriageResource[]
-  virtualCareEligible?: boolean
-  actionText?: string
-  fallback?: boolean
 }
 
 export function LocationScreenClient({ locale }: Props) {
@@ -57,7 +39,7 @@ export function LocationScreenClient({ locale }: Props) {
   // redirect to results so the patient isn't stuck.
   useEffect(() => {
     try {
-      const stored = sessionStorage.getItem('triageResult')
+      const stored = sessionStorage.getItem(SESSION_KEYS.triageResult)
       if (!stored) {
         router.replace(`/${locale}/results?fallback=true`)
         return
@@ -70,7 +52,7 @@ export function LocationScreenClient({ locale }: Props) {
       // returns the localized name, so we accept both English ("Urgent")
       // and Spanish ("Urgente").
       const urgencyName = parsed.urgencyLevel?.name
-      if (urgencyName !== 'Urgent' && urgencyName !== 'Urgente') {
+      if (!isUrgentLevel(urgencyName)) {
         router.replace(`/${locale}/results`)
         return
       }
@@ -89,7 +71,7 @@ export function LocationScreenClient({ locale }: Props) {
     // Persist the patient's coordinates so the results page can display
     // distances immediately without asking for location a second time.
     try {
-      sessionStorage.setItem('triageUserLocation', JSON.stringify({ lat: loc.lat, lon: loc.lon }))
+      sessionStorage.setItem(SESSION_KEYS.userLocation, JSON.stringify({ lat: loc.lat, lon: loc.lon }))
     } catch { /* non-fatal */ }
 
     try {
@@ -122,7 +104,7 @@ export function LocationScreenClient({ locale }: Props) {
           resources: [...data.resources, ...preservedNonUrgent],
         }
       }
-      sessionStorage.setItem('triageResult', JSON.stringify(nextResult))
+      sessionStorage.setItem(SESSION_KEYS.triageResult, JSON.stringify(nextResult))
 
       // In all paths (success, empty, or fallback) we proceed to results
       // with a non-empty list — either the freshly fetched or the seeded one.
@@ -133,7 +115,7 @@ export function LocationScreenClient({ locale }: Props) {
       // even though we couldn't swap in Foursquare data. Seeded urgent cares
       // are kept.
       const fallbackResult: TriageResult = { ...result, virtualCareEligible: false }
-      sessionStorage.setItem('triageResult', JSON.stringify(fallbackResult))
+      sessionStorage.setItem(SESSION_KEYS.triageResult, JSON.stringify(fallbackResult))
       router.push(`/${locale}/results`)
     }
   }
@@ -146,7 +128,7 @@ export function LocationScreenClient({ locale }: Props) {
     // disable the interstitial gate.
     if (result) {
       const nextResult: TriageResult = { ...result, virtualCareEligible: false }
-      sessionStorage.setItem('triageResult', JSON.stringify(nextResult))
+      sessionStorage.setItem(SESSION_KEYS.triageResult, JSON.stringify(nextResult))
     }
     router.push(`/${locale}/results`)
   }

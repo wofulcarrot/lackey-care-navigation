@@ -9,6 +9,7 @@ import { ProgressBar } from '@/components/ProgressBar'
 import { EmergencyAlert } from '@/components/EmergencyAlert'
 import { CrisisAlert } from '@/components/CrisisAlert'
 import { track } from '@/lib/tracker'
+import { SESSION_KEYS, isUrgentLevel } from '@/lib/constants'
 
 interface Props {
   careTypeId: string
@@ -60,7 +61,7 @@ export function TriageClient({
     })
       .then((r) => r.json())
       .then((data) => {
-        sessionStorage.setItem('triageResult', JSON.stringify(data))
+        sessionStorage.setItem(SESSION_KEYS.triageResult, JSON.stringify(data))
         // Store the inputs so results page can re-evaluate on locale change
         sessionStorage.setItem('triageInputs', JSON.stringify({ careTypeId, answers, questionSetVersion }))
         track('triage_completed', { careType: careTypeId, urgencyLevel: data?.urgencyLevel?.name })
@@ -72,8 +73,7 @@ export function TriageClient({
         // flow. The evaluate API returns the localized name, so we check
         // both English ("Urgent") and Spanish ("Urgente").
         const urgencyName = data?.urgencyLevel?.name
-        const isUrgent = urgencyName === 'Urgent' || urgencyName === 'Urgente'
-        if (isUrgent && !data?.escalate) {
+        if (isUrgentLevel(urgencyName) && !data?.escalate) {
           router.push(`/${locale}/location`)
         } else {
           router.push(`/${locale}/results`)

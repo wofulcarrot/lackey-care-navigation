@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { calculateScore, classifyUrgency, checkEscalation } from '@/lib/triage-engine'
-import { rateLimit } from '@/lib/rate-limit'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import { recordSessionLogFailure } from '@/lib/observability'
 
 // Allow up to 30s for cold-start (Neon wake + Payload init)
@@ -10,8 +10,7 @@ export const maxDuration = 30
 
 export async function POST(request: Request) {
   try {
-    const forwarded = request.headers.get('x-forwarded-for')
-    const ip = forwarded?.split(',')[0]?.trim() ?? '127.0.0.1'
+    const ip = getClientIp(request)
     const { allowed } = rateLimit(ip)
     if (!allowed) {
       return NextResponse.json(
