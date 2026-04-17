@@ -48,30 +48,31 @@ export async function POST(request: Request) {
 
     const payload = await getPayload({ config })
 
-    // Fire-and-forget session log. We intentionally do NOT await so the
-    // patient flow (full-screen 911 alert) is never blocked by DB latency.
+    // Await the write — on Vercel Serverless, the runtime freezes after
+    // the response is sent, so fire-and-forget writes get lost.
     const sessionId = crypto.randomUUID()
-    payload.create({
-      collection: 'triage-sessions',
-      // overrideAccess: trusted server path (see TriageSessions access rule)
-      overrideAccess: true,
-      data: {
-        sessionId,
-        careTypeSelected: null,
-        urgencyResult: null,
-        resourcesShown: [],
-        virtualCareOffered: false,
-        emergencyScreenTriggered: true,
-        completedFlow: false,
-        locale: safeLocale,
-        device: safeDevice,
-        questionSetVersion: null,
-      },
-    }).catch((err) => {
+    try {
+      await payload.create({
+        collection: 'triage-sessions',
+        overrideAccess: true,
+        data: {
+          sessionId,
+          careTypeSelected: null,
+          urgencyResult: null,
+          resourcesShown: [],
+          virtualCareOffered: false,
+          emergencyScreenTriggered: true,
+          completedFlow: false,
+          locale: safeLocale,
+          device: safeDevice,
+          questionSetVersion: null,
+        },
+      })
+    } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       console.error('[triage-session] Failed to log emergency screen event:', message)
       recordSessionLogFailure(err)
-    })
+    }
 
     return new NextResponse(null, { status: 204 })
   } catch {

@@ -51,34 +51,31 @@ export async function POST(request: Request) {
 
     // Check for immediate escalation
     if (checkEscalation(answers)) {
-      // Fire-and-forget session log for answer-triggered escalations.
-      // Mirrors the non-escalation logging below: we do NOT await so the
-      // escalated response returns in one RTT, but failures still increment
-      // the observability counter used by /api/health.
+      // Await session log — Vercel freezes the runtime after response, so
+      // fire-and-forget writes get lost on serverless.
       const sessionId = crypto.randomUUID()
-      payload.create({
-        collection: 'triage-sessions',
-        // overrideAccess lets this trusted server path write through the
-        // locked-down access.create rule (which requires an authed user to
-        // block public REST abuse). See collections/TriageSessions.ts.
-        overrideAccess: true,
-        data: {
-          sessionId,
-          careTypeSelected: Number(careTypeId),
-          urgencyResult: null,
-          resourcesShown: [],
-          virtualCareOffered: false,
-          emergencyScreenTriggered: false,
-          completedFlow: true,
-          locale: safeLocale,
-          device: safeDevice,
-          questionSetVersion: body.questionSetVersion ?? null,
-        },
-      }).catch((err) => {
+      try {
+        await payload.create({
+          collection: 'triage-sessions',
+          overrideAccess: true,
+          data: {
+            sessionId,
+            careTypeSelected: Number(careTypeId),
+            urgencyResult: null,
+            resourcesShown: [],
+            virtualCareOffered: false,
+            emergencyScreenTriggered: false,
+            completedFlow: true,
+            locale: safeLocale,
+            device: safeDevice,
+            questionSetVersion: body.questionSetVersion ?? null,
+          },
+        })
+      } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
         console.error('[triage-session] Failed to log escalation session:', message)
         recordSessionLogFailure(err)
-      })
+      }
 
       return NextResponse.json({
         escalate: true,
@@ -145,40 +142,33 @@ export async function POST(request: Request) {
     }
 
     // Log anonymous session (fire-and-forget).
-    //
-    // Tradeoff: we intentionally do NOT await this write. Patient triage flow
-    // must never block on reporting-DB latency or outages. The downside is
-    // that failures would otherwise be invisible, so we increment an in-memory
-    // counter (see src/lib/observability.ts) that /api/health surfaces to
-    // uptime monitors and the CEO dashboard. This preserves grant-reporting
-    // integrity signals without coupling the patient path to write durability.
+    // Await session log — Vercel freezes the runtime after response, so
+    // fire-and-forget writes get lost on serverless.
     const sessionId = crypto.randomUUID()
-    payload.create({
-      collection: 'triage-sessions',
-      // overrideAccess: trusted server path (see TriageSessions access rule)
-      overrideAccess: true,
-      data: {
-        sessionId,
-        // Relationship fields expect numeric IDs. careTypeId comes from the
-        // URL param (already numeric-ish), urgencyLevel.id was stringified
-        // for the client response — convert both back to numbers.
-        careTypeSelected: Number(careTypeId),
-        urgencyResult: Number(urgencyLevel.id),
-        resourcesShown: Array.isArray(rule.resources)
-          ? rule.resources.map((r: any) => (typeof r === 'object' ? r.id : r))
-          : [],
-        virtualCareOffered: rule.virtualCareEligible ?? false,
-        emergencyScreenTriggered: false,
-        completedFlow: true,
-        locale: safeLocale,
-        device: safeDevice,
-        questionSetVersion: body.questionSetVersion ?? null,
-      },
-    }).catch((err) => {
+    try {
+      await payload.create({
+        collection: 'triage-sessions',
+        overrideAccess: true,
+        data: {
+          sessionId,
+          careTypeSelected: Number(careTypeId),
+          urgencyResult: Number(urgencyLevel.id),
+          resourcesShown: Array.isArray(rule.resources)
+            ? rule.resources.map((r: any) => (typeof r === 'object' ? r.id : r))
+            : [],
+          virtualCareOffered: rule.virtualCareEligible ?? false,
+          emergencyScreenTriggered: false,
+          completedFlow: true,
+          locale: safeLocale,
+          device: safeDevice,
+          questionSetVersion: body.questionSetVersion ?? null,
+        },
+      })
+    } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       console.error('[triage-session] Failed to log session:', message)
       recordSessionLogFailure(err)
-    })
+    }
 
     return NextResponse.json({
       escalate: false,
