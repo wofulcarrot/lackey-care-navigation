@@ -7,7 +7,10 @@ import type { TriageResource } from '@/lib/types'
 export function ResourceCard({ resource, distanceLabel }: { resource: TriageResource; distanceLabel?: string }) {
   const t = useTranslations('results')
   const addr = resource.address
-  const addressStr = addr ? `${addr.street ?? ''}, ${addr.city ?? ''}, ${addr.state ?? ''} ${addr.zip ?? ''}`.trim() : ''
+  const parts = addr
+    ? [addr.street, addr.city, [addr.state, addr.zip].filter(Boolean).join(' ')].filter(Boolean)
+    : []
+  const addressStr = parts.join(', ')
   const mapsUrl = addressStr
     ? `https://maps.google.com/?q=${encodeURIComponent(addressStr)}`
     : null

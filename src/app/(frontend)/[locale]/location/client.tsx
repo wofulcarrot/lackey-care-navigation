@@ -30,7 +30,6 @@ interface Props {
 export function LocationScreenClient({ locale }: Props) {
   const router = useRouter()
   const t = useTranslations('locationScreen')
-  const tLoc = useTranslations('location')
   const [status, setStatus] = useState<'idle' | 'searching' | 'error'>('idle')
   const [result, setResult] = useState<TriageResult | null>(null)
   const [hydrated, setHydrated] = useState(false)
@@ -189,8 +188,6 @@ export function LocationScreenClient({ locale }: Props) {
         </>
       )}
 
-      {/* Include the tLoc hook so it's flagged as used for i18n tooling */}
-      <span className="sr-only">{tLoc('findClosest')}</span>
     </div>
   )
 }

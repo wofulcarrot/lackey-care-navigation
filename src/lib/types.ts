@@ -41,4 +41,6 @@ export interface TriageResult {
   virtualCareEligible?: boolean
   actionText?: string
   fallback?: boolean
+  clinicPhone?: string
+  virtualCareUrl?: string
 }

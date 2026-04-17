@@ -27,7 +27,8 @@ function purgeExpired(): void {
 }
 
 // Cleanup stale entries every 5 minutes to prevent unbounded growth.
-setInterval(purgeExpired, 300_000)
+const timer = setInterval(purgeExpired, 300_000)
+if (typeof timer === 'object' && 'unref' in timer) timer.unref()
 
 export function recordSessionLogFailure(err: unknown): void {
   // Purge expired timestamps at write time too (handles sparse failures).

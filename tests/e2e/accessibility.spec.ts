@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { SESSION_KEYS } from '@/lib/constants'
 
 test('landing page passes WCAG AA', async ({ page }) => {
   await page.goto('/en')
@@ -17,7 +18,7 @@ test('care type selection passes WCAG AA', async ({ page }) => {
   // Set the emergency-screen flag so the sessionStorage guard doesn't
   // redirect away before axe can scan the page content.
   await page.goto('/en/care-type')
-  await page.evaluate(() => sessionStorage.setItem('emergencyScreenCompleted', 'true'))
+  await page.evaluate((key) => sessionStorage.setItem(key, 'true'), SESSION_KEYS.emergencyScreen)
   await page.goto('/en/care-type')
   const results = await new AxeBuilder({ page }).analyze()
   expect(results.violations).toEqual([])
