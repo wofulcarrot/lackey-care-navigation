@@ -14,6 +14,7 @@ import { SESSION_KEYS, isUrgentLevel } from '@/lib/constants'
 interface Props {
   careTypeId: string
   careTypeName: string
+  isBehavioralHealth: boolean
   questions: any[]
   questionSetVersion: number
 }
@@ -21,6 +22,7 @@ interface Props {
 export function TriageClient({
   careTypeId,
   careTypeName,
+  isBehavioralHealth: isBehavioralHealthProp,
   questions,
   questionSetVersion,
 }: Props) {
@@ -93,11 +95,50 @@ export function TriageClient({
   // Behavioral Health escalation shows the dedicated suicide prevention
   // screen (988 Lifeline + Crisis Text Line + CSB) instead of the generic
   // 911 EmergencyAlert. All other care types keep the 911 path.
+  //
+  // Use the CMS boolean first; fall back to name matching for legacy data.
   if (triage.escalated) {
-    const isBehavioralHealth =
+    const isBH =
+      isBehavioralHealthProp ||
       careTypeName === 'Behavioral Health' ||
-      careTypeName === 'Salud mental' // Spanish locale name
-    return isBehavioralHealth ? <CrisisAlert /> : <EmergencyAlert />
+      careTypeName === 'Salud mental' // Spanish locale name — legacy fallback
+
+    if (isBH) {
+      // Fire-and-forget: log the BH crisis session so the dashboard
+      // crisisCount metric reflects real events. Patient MUST see 988
+      // resources even if logging fails — never await, wrap in try/catch.
+      try {
+        const width = typeof window !== 'undefined' ? window.innerWidth : 0
+        const device = width < 640 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop'
+        const payload = JSON.stringify({ isCrisis: true, careTypeId, locale, device })
+
+        const beacon =
+          typeof navigator !== 'undefined' &&
+          typeof navigator.sendBeacon === 'function'
+            ? navigator.sendBeacon(
+                '/api/triage/log-emergency',
+                new Blob([payload], { type: 'application/json' }),
+              )
+            : false
+
+        if (!beacon) {
+          void fetch('/api/triage/log-emergency', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            keepalive: true,
+          }).catch(() => {
+            /* swallow — never block the patient flow */
+          })
+        }
+      } catch {
+        /* swallow — never block the patient flow */
+      }
+
+      return <CrisisAlert />
+    }
+
+    return <EmergencyAlert />
   }
   if (!triage.currentQuestion) return null
 

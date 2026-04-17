@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       )
     }
 
-    let body: { locale?: unknown; device?: unknown } = {}
+    let body: { locale?: unknown; device?: unknown; isCrisis?: unknown; careTypeId?: unknown } = {}
     try {
       body = await request.json()
     } catch {
@@ -37,13 +37,16 @@ export async function POST(request: Request) {
       body = {}
     }
 
-    const { locale = 'en', device = 'mobile' } = body
+    const { locale = 'en', device = 'mobile', isCrisis = false, careTypeId } = body
     const validLocales = ['en', 'es'] as const
     const validDevices = ['mobile', 'tablet', 'desktop'] as const
     const safeLocale = validLocales.includes(locale as any) ? (locale as 'en' | 'es') : 'en'
     const safeDevice = validDevices.includes(device as any)
       ? (device as 'mobile' | 'tablet' | 'desktop')
       : 'mobile'
+    const safeCrisis = isCrisis === true
+    // careTypeId is an optional relationship — validate it's a non-empty string
+    const safeCareTypeId = typeof careTypeId === 'string' && careTypeId.length > 0 ? Number(careTypeId) || null : null
 
     const payload = await getPayload({ config })
 
@@ -56,11 +59,12 @@ export async function POST(request: Request) {
         overrideAccess: true,
         data: {
           sessionId,
-          careTypeSelected: null,
+          careTypeSelected: safeCareTypeId,
           urgencyResult: null,
           resourcesShown: [],
           virtualCareOffered: false,
           emergencyScreenTriggered: true,
+          isCrisis: safeCrisis,
           completedFlow: false,
           locale: safeLocale,
           device: safeDevice,

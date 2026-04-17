@@ -28,5 +28,7 @@ export const CareTypes: CollectionConfig = {
       admin: { description: 'Lower numbers appear first. Leave gaps (10, 20, 30) to make reordering easier.' } },
     { name: 'isMeta', type: 'checkbox', defaultValue: false,
       admin: { description: 'Meta care types ("Not Sure") use redirectToCareType answers to route into a real care type.' } },
+    { name: 'isBehavioralHealth', type: 'checkbox', defaultValue: false,
+      admin: { description: 'When true, triage escalation shows the 988 crisis screen' } },
   ],
 }

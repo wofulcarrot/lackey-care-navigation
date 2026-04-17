@@ -92,8 +92,10 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
 
   const totalSessions = docs.length
 
-  // BH crisis helper — kept as-is, called inside the single loop below.
-  const isBhCrisis = (d: typeof docs[0]) => {
+  // BH crisis helper — checks the isCrisis boolean first (new), falls back
+  // to care type name matching for legacy sessions that lack the flag.
+  const isBhCrisis = (d: typeof docs[0] & { isCrisis?: boolean }) => {
+    if (d.isCrisis === true) return true
     const ct = d.careTypeSelected
     if (!ct || typeof ct !== 'object' || !('name' in ct)) return false
     const name = (ct as { name?: string }).name ?? ''
@@ -140,9 +142,10 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
 
   for (const d of docs) {
     // Routing counters
-    // Original completedCount = all docs where completedFlow is truthy
-    // (including emergency docs that also completed the flow).
-    if (d.completedFlow) completedCount++
+    // Only count sessions that completed the flow AND were not emergency
+    // escalations — emergency sessions are counted separately in
+    // allEmergencyCount so the abandoned formula doesn't double-count.
+    if (d.completedFlow && !d.emergencyScreenTriggered) completedCount++
 
     if (d.emergencyScreenTriggered) {
       allEmergencyCount++
@@ -216,7 +219,7 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
 
   // --- Derive final aggregates from the accumulators ---
 
-  const abandonedCount = totalSessions - completedCount - allEmergencyCount
+  const abandonedCount = Math.max(0, totalSessions - completedCount - allEmergencyCount)
   const completedRate = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0
 
   const routingMix = [
