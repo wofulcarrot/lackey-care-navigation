@@ -7,6 +7,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 const isDev = process.env.NODE_ENV !== 'production'
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   ...(isDev ? { allowedDevOrigins: ['192.168.1.236'] } : {}),
   async headers() {
     // In development, use a permissive CSP so HMR, WebSockets, and
