@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { EmergencyAlert } from '@/components/EmergencyAlert'
+import { SESSION_KEYS } from '@/lib/constants'
 
 interface Symptom {
   id: string
@@ -62,7 +63,7 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
 
       setShowAlert(true)
     } else {
-      sessionStorage.setItem('emergencyScreenCompleted', 'true')
+      sessionStorage.setItem(SESSION_KEYS.emergencyScreen, 'true')
       router.push(`/${locale}/care-type`)
     }
   }

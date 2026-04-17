@@ -17,6 +17,17 @@ setInterval(() => {
     if (valid.length === 0) hits.delete(key)
     else hits.set(key, valid)
   }
+  // Hard cap: evict oldest entries to bound memory under bot scans / DDoS.
+  // Map iterates in insertion order, so the first keys are the oldest.
+  if (hits.size > 10_000) {
+    const excess = hits.size - 10_000
+    let deleted = 0
+    for (const key of hits.keys()) {
+      if (deleted >= excess) break
+      hits.delete(key)
+      deleted++
+    }
+  }
 }, 300_000)
 
 export function rateLimit(ip: string): { allowed: boolean; remaining: number } {
@@ -31,4 +42,10 @@ export function rateLimit(ip: string): { allowed: boolean; remaining: number } {
   timestamps.push(now)
   hits.set(ip, timestamps)
   return { allowed: true, remaining: maxRequests - timestamps.length }
+}
+
+/** Extract the client IP from the request, preferring x-forwarded-for. */
+export function getClientIp(request: Request, fallback = '127.0.0.1'): string {
+  const forwarded = request.headers.get('x-forwarded-for')
+  return forwarded?.split(',')[0]?.trim() || fallback
 }

@@ -14,7 +14,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { rateLimit } from '@/lib/rate-limit'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import { searchNearbyUrgentCares } from '@/lib/foursquare'
 
 const MAX_RADIUS_MILES = 25
@@ -32,8 +32,7 @@ const US_LON_MAX = -65.0
 export async function POST(request: Request) {
   try {
     // Tighter rate limit than /evaluate since this hits a paid external API
-    const forwarded = request.headers.get('x-forwarded-for')
-    const ip = forwarded?.split(',')[0]?.trim() ?? '127.0.0.1'
+    const ip = getClientIp(request)
     const { allowed } = rateLimit(`fsq:${ip}`)
     if (!allowed) {
       return NextResponse.json(

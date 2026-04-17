@@ -38,10 +38,6 @@ export interface DashboardData {
   }
 }
 
-function sameDay(d: Date, y: number, m: number, day: number) {
-  return d.getFullYear() === y && d.getMonth() === m && d.getDate() === day
-}
-
 /**
  * Fetch and aggregate all dashboard data in a single pass.
  * Expects TriageSessions with populated relationships (depth: 1).
@@ -89,85 +85,31 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
   }>
 
   const totalSessions = docs.length
-  const completedCount = docs.filter((d) => d.completedFlow).length
-  const virtualCount = docs.filter((d) => d.completedFlow && d.virtualCareOffered && !d.emergencyScreenTriggered).length
 
-  // Split emergency events into medical 911 escalations vs behavioral health
-  // crisis (988). A BH crisis is identified by emergencyScreenTriggered=true
-  // AND careTypeSelected being "Behavioral Health" / "Salud mental".
-  const allEmergency = docs.filter((d) => d.emergencyScreenTriggered)
+  // BH crisis helper — kept as-is, called inside the single loop below.
   const isBhCrisis = (d: typeof docs[0]) => {
     const ct = d.careTypeSelected
     if (!ct || typeof ct !== 'object' || !('name' in ct)) return false
     const name = (ct as { name?: string }).name ?? ''
     return name === 'Behavioral Health' || name === 'Salud mental'
   }
-  const crisisCount = allEmergency.filter(isBhCrisis).length
-  // emergencyCount is everything else (medical 911 + pre-triage symptom screen)
-  const emergencyCount = allEmergency.length - crisisCount
 
-  const inPersonCount = docs.filter(
-    (d) => d.completedFlow && !d.virtualCareOffered && !d.emergencyScreenTriggered,
-  ).length
-  const abandonedCount = totalSessions - completedCount - allEmergency.length
-  const completedRate = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0
+  // --- Initialize all accumulators before the single pass ---
 
-  const routingMix = [
-    { name: 'Virtual care', count: virtualCount, color: '#10b981' },
-    { name: 'In-person', count: inPersonCount, color: '#3b82f6' },
-    { name: 'Emergency (911)', count: emergencyCount, color: '#ef4444' },
-    { name: 'Crisis (988)', count: crisisCount, color: '#8b5cf6' },
-  ].filter((r) => r.count > 0)
+  let completedCount = 0
+  let virtualCount = 0
+  let crisisCount = 0
+  let emergencyCount = 0
+  let inPersonCount = 0
+  let allEmergencyCount = 0
 
-  // Care type breakdown
   const careTypeCounts = new Map<string, number>()
-  for (const d of docs) {
-    const ct = d.careTypeSelected
-    if (ct && typeof ct === 'object' && 'name' in ct) {
-      careTypeCounts.set(ct.name, (careTypeCounts.get(ct.name) ?? 0) + 1)
-    }
-  }
-  const careTypeBreakdown = [...careTypeCounts.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-
-  // Urgency breakdown
   const urgencyCounts = new Map<string, number>()
-  for (const d of docs) {
-    const u = d.urgencyResult
-    if (u && typeof u === 'object' && 'name' in u) {
-      urgencyCounts.set(u.name, (urgencyCounts.get(u.name) ?? 0) + 1)
-    }
-  }
-  const urgencyBreakdown = [...urgencyCounts.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-
-  // Language breakdown
   const langCounts = { en: 0, es: 0 }
-  for (const d of docs) {
-    if (d.locale === 'en') langCounts.en++
-    else if (d.locale === 'es') langCounts.es++
-  }
-  const languageBreakdown = [
-    { locale: 'en', label: 'English', count: langCounts.en, percent: totalSessions ? Math.round((langCounts.en / totalSessions) * 100) : 0 },
-    { locale: 'es', label: 'Spanish', count: langCounts.es, percent: totalSessions ? Math.round((langCounts.es / totalSessions) * 100) : 0 },
-  ]
-
-  // Device breakdown
   const devCounts = { mobile: 0, tablet: 0, desktop: 0 }
-  for (const d of docs) {
-    if (d.device === 'mobile') devCounts.mobile++
-    else if (d.device === 'tablet') devCounts.tablet++
-    else if (d.device === 'desktop') devCounts.desktop++
-  }
-  const deviceBreakdown = [
-    { device: 'mobile', label: 'Mobile', count: devCounts.mobile, percent: totalSessions ? Math.round((devCounts.mobile / totalSessions) * 100) : 0 },
-    { device: 'desktop', label: 'Desktop', count: devCounts.desktop, percent: totalSessions ? Math.round((devCounts.desktop / totalSessions) * 100) : 0 },
-    { device: 'tablet', label: 'Tablet', count: devCounts.tablet, percent: totalSessions ? Math.round((devCounts.tablet / totalSessions) * 100) : 0 },
-  ]
 
-  // Daily trend — fill every day in range so chart has no gaps
+  // Daily trend — pre-fill every day in range so chart has no gaps.
+  // This iterates over dates, not docs, so it stays as a separate loop.
   const dailyMap = new Map<string, { total: number; virtual: number; inPerson: number; emergency: number; crisis: number }>()
   const iter = new Date(range.start)
   iter.setHours(0, 0, 0, 0)
@@ -178,32 +120,74 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
     dailyMap.set(key, { total: 0, virtual: 0, inPerson: 0, emergency: 0, crisis: 0 })
     iter.setDate(iter.getDate() + 1)
   }
-  for (const d of docs) {
-    const key = new Date(d.createdAt).toISOString().slice(0, 10)
-    const bucket = dailyMap.get(key)
-    if (!bucket) continue
-    bucket.total++
-    if (d.emergencyScreenTriggered) {
-      if (isBhCrisis(d)) bucket.crisis++
-      else bucket.emergency++
-    } else if (d.completedFlow && d.virtualCareOffered) bucket.virtual++
-    else if (d.completedFlow) bucket.inPerson++
-  }
-  const dailyTrend = [...dailyMap.entries()].map(([date, v]) => ({ date, ...v }))
 
   // Hourly heatmap (7 days × 24 hours)
   const hourlyHeatmap: number[][] = Array.from({ length: 7 }, () => Array<number>(24).fill(0))
-  for (const d of docs) {
-    const when = new Date(d.createdAt)
-    hourlyHeatmap[when.getDay()][when.getHours()]++
-  }
 
-  // Top partners — flatten resourcesShown across all sessions
+  // Top partners map
   const partnerCounts = new Map<
     string | number,
     { id: string | number; name: string; count: number; type?: string; latitude?: number; longitude?: number }
   >()
+
+  // --- Single pass over all documents ---
+
   for (const d of docs) {
+    // Routing counters
+    // Original completedCount = all docs where completedFlow is truthy
+    // (including emergency docs that also completed the flow).
+    if (d.completedFlow) completedCount++
+
+    if (d.emergencyScreenTriggered) {
+      allEmergencyCount++
+      if (isBhCrisis(d)) crisisCount++
+      else emergencyCount++
+    }
+
+    // virtualCount: completedFlow && virtualCareOffered && !emergencyScreenTriggered
+    if (d.completedFlow && d.virtualCareOffered && !d.emergencyScreenTriggered) virtualCount++
+
+    // inPersonCount: completedFlow && !virtualCareOffered && !emergencyScreenTriggered
+    if (d.completedFlow && !d.virtualCareOffered && !d.emergencyScreenTriggered) inPersonCount++
+
+    // Care type breakdown
+    const ct = d.careTypeSelected
+    if (ct && typeof ct === 'object' && 'name' in ct) {
+      careTypeCounts.set(ct.name, (careTypeCounts.get(ct.name) ?? 0) + 1)
+    }
+
+    // Urgency breakdown
+    const u = d.urgencyResult
+    if (u && typeof u === 'object' && 'name' in u) {
+      urgencyCounts.set(u.name, (urgencyCounts.get(u.name) ?? 0) + 1)
+    }
+
+    // Language breakdown
+    if (d.locale === 'en') langCounts.en++
+    else if (d.locale === 'es') langCounts.es++
+
+    // Device breakdown
+    if (d.device === 'mobile') devCounts.mobile++
+    else if (d.device === 'tablet') devCounts.tablet++
+    else if (d.device === 'desktop') devCounts.desktop++
+
+    // Daily trend buckets
+    const when = new Date(d.createdAt)
+    const dayKey = when.toISOString().slice(0, 10)
+    const bucket = dailyMap.get(dayKey)
+    if (bucket) {
+      bucket.total++
+      if (d.emergencyScreenTriggered) {
+        if (isBhCrisis(d)) bucket.crisis++
+        else bucket.emergency++
+      } else if (d.completedFlow && d.virtualCareOffered) bucket.virtual++
+      else if (d.completedFlow) bucket.inPerson++
+    }
+
+    // Hourly heatmap
+    hourlyHeatmap[when.getDay()][when.getHours()]++
+
+    // Top partners — flatten resourcesShown
     const resources = d.resourcesShown ?? []
     for (const r of resources) {
       if (r && typeof r === 'object' && 'id' in r) {
@@ -223,6 +207,40 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
       }
     }
   }
+
+  // --- Derive final aggregates from the accumulators ---
+
+  const abandonedCount = totalSessions - completedCount - allEmergencyCount
+  const completedRate = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0
+
+  const routingMix = [
+    { name: 'Virtual care', count: virtualCount, color: '#10b981' },
+    { name: 'In-person', count: inPersonCount, color: '#3b82f6' },
+    { name: 'Emergency (911)', count: emergencyCount, color: '#ef4444' },
+    { name: 'Crisis (988)', count: crisisCount, color: '#8b5cf6' },
+  ].filter((r) => r.count > 0)
+
+  const careTypeBreakdown = [...careTypeCounts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+
+  const urgencyBreakdown = [...urgencyCounts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+
+  const languageBreakdown = [
+    { locale: 'en', label: 'English', count: langCounts.en, percent: totalSessions ? Math.round((langCounts.en / totalSessions) * 100) : 0 },
+    { locale: 'es', label: 'Spanish', count: langCounts.es, percent: totalSessions ? Math.round((langCounts.es / totalSessions) * 100) : 0 },
+  ]
+
+  const deviceBreakdown = [
+    { device: 'mobile', label: 'Mobile', count: devCounts.mobile, percent: totalSessions ? Math.round((devCounts.mobile / totalSessions) * 100) : 0 },
+    { device: 'desktop', label: 'Desktop', count: devCounts.desktop, percent: totalSessions ? Math.round((devCounts.desktop / totalSessions) * 100) : 0 },
+    { device: 'tablet', label: 'Tablet', count: devCounts.tablet, percent: totalSessions ? Math.round((devCounts.tablet / totalSessions) * 100) : 0 },
+  ]
+
+  const dailyTrend = [...dailyMap.entries()].map(([date, v]) => ({ date, ...v }))
+
   const topPartners = [...partnerCounts.values()].sort((a, b) => b.count - a.count)
 
   // Virtual care pacing — annualize the rate from the current window

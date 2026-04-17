@@ -8,44 +8,8 @@ import { VirtualCareInterstitial } from '@/components/VirtualCareInterstitial'
 import { ErrorFallback } from '@/components/ErrorFallback'
 import { LocationPrompt } from '@/components/LocationPrompt'
 import { distanceMiles, formatDistance } from '@/lib/distance'
-
-interface ResourceAddress {
-  street?: string
-  city?: string
-  state?: string
-  zip?: string
-  latitude?: number
-  longitude?: number
-}
-
-interface TriageResource {
-  id: string
-  name: string
-  type: string
-  address?: ResourceAddress
-  phone?: string
-  hours?: { day: string; open: string; close: string }[]
-  cost?: string
-  eligibility?: string
-  temporaryNotice?: string
-  description?: string
-  is24_7?: boolean
-}
-
-interface TriageResult {
-  escalate: boolean
-  urgencyLevel?: {
-    id: string
-    name: string
-    color: string
-    scoreThreshold: number
-    timeToCare?: string
-  }
-  resources: TriageResource[]
-  virtualCareEligible?: boolean
-  actionText?: string
-  fallback?: boolean
-}
+import type { TriageResult, TriageResource } from '@/lib/types'
+import { SESSION_KEYS, METERS_PER_MILE } from '@/lib/constants'
 
 interface Props {
   clinicPhone: string
@@ -72,7 +36,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
       return
     }
     try {
-      const stored = sessionStorage.getItem('triageResult')
+      const stored = sessionStorage.getItem(SESSION_KEYS.triageResult)
       if (stored) {
         setData(JSON.parse(stored) as TriageResult)
         // NOTE: we intentionally do NOT removeItem here. The component
@@ -88,7 +52,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
     // already shared their GPS/ZIP there, distances show immediately on
     // the results page without asking again.
     try {
-      const storedLoc = sessionStorage.getItem('triageUserLocation')
+      const storedLoc = sessionStorage.getItem(SESSION_KEYS.userLocation)
       if (storedLoc) {
         const loc = JSON.parse(storedLoc)
         if (typeof loc.lat === 'number' && typeof loc.lon === 'number') {
@@ -135,10 +99,10 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
   // Haversine. Resources without coordinates sort last.
   const resources = userLoc
     ? [...rawResources]
-        .map((r) => {
+        .map((r): TriageResource & { distanceMiles?: number } => {
           // Use Foursquare's pre-computed distance if available
-          const fsqDist = typeof (r as any).distanceMeters === 'number'
-            ? (r as any).distanceMeters / 1609.34 // meters → miles
+          const fsqDist = typeof r.distanceMeters === 'number'
+            ? r.distanceMeters / METERS_PER_MILE // meters → miles
             : undefined
           const lat = r.address?.latitude
           const lon = r.address?.longitude
@@ -186,7 +150,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
           <ResourceCard
             key={r.id ?? i}
             resource={r}
-            distanceLabel={r.distanceMiles != null ? formatDistance(r.distanceMiles) : undefined}
+            distanceLabel={'distanceMiles' in r && typeof r.distanceMiles === 'number' ? formatDistance(r.distanceMiles) : undefined}
           />
         ))}
       </div>
@@ -205,9 +169,9 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
             // Clear stored triage data and the emergency-screen flow flag
             // so the next run starts clean from the landing page.
             try {
-              sessionStorage.removeItem('triageResult')
-              sessionStorage.removeItem('triageUserLocation')
-              sessionStorage.removeItem('emergencyScreenCompleted')
+              sessionStorage.removeItem(SESSION_KEYS.triageResult)
+              sessionStorage.removeItem(SESSION_KEYS.userLocation)
+              sessionStorage.removeItem(SESSION_KEYS.emergencyScreen)
             } catch {
               // non-fatal
             }

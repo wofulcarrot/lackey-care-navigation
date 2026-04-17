@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { CareTypeCard } from '@/components/CareTypeCard'
+import { SESSION_KEYS } from '@/lib/constants'
 
 interface CareType {
   id: string
@@ -19,7 +20,7 @@ export function CareTypeSelectionClient({ careTypes }: { careTypes: CareType[] }
   const locale = useLocale()
 
   useEffect(() => {
-    if (!sessionStorage.getItem('emergencyScreenCompleted')) {
+    if (!sessionStorage.getItem(SESSION_KEYS.emergencyScreen)) {
       router.replace(`/${locale}/emergency`)
     }
   }, [router, locale])

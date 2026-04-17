@@ -20,13 +20,6 @@ interface DayData {
   crisis: number
 }
 
-const COLORS: Record<string, { fill: string; label: string }> = {
-  virtual:   { fill: '#10b981', label: 'Virtual' },
-  inPerson:  { fill: '#3b82f6', label: 'In-person' },
-  emergency: { fill: '#ef4444', label: 'Emergency (911)' },
-  crisis:    { fill: '#8b5cf6', label: 'Crisis (988)' },
-}
-
 function formatDate(d: string) {
   const dt = new Date(d + 'T00:00:00')
   return dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
