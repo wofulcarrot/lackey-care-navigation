@@ -53,27 +53,28 @@ export async function POST(request: Request) {
 
     const payload = await getPayload({ config })
 
-    // Write all events fire-and-forget
-    for (const evt of events) {
-      if (!evt.sessionId || !evt.event || !VALID_EVENTS.has(evt.event)) continue
+    // Await all writes before responding. On Vercel Serverless, the runtime
+    // freezes after the response is sent — fire-and-forget writes get lost.
+    // Using Promise.allSettled so one failed write doesn't block the rest.
+    const writes = events
+      .filter((evt: any) => evt.sessionId && evt.event && VALID_EVENTS.has(evt.event))
+      .map((evt: any) =>
+        (payload.create as any)({
+          collection: 'triage-events',
+          overrideAccess: true,
+          data: {
+            sessionId: String(evt.sessionId).slice(0, 64),
+            event: evt.event,
+            metadata: evt.metadata ?? null,
+            locale: VALID_LOCALES.has(evt.locale) ? evt.locale : null,
+            device: VALID_DEVICES.has(evt.device) ? evt.device : null,
+          },
+        }).catch((err: any) => {
+          recordSessionLogFailure(err)
+        }),
+      )
 
-      // TriageEvents collection exists but payload-types.ts hasn't been
-      // regenerated yet. Cast to any to bypass stale type definitions.
-      ;(payload.create as any)({
-        collection: 'triage-events',
-        overrideAccess: true,
-        data: {
-          sessionId: String(evt.sessionId).slice(0, 64),
-          event: evt.event,
-          metadata: evt.metadata ?? null,
-          locale: VALID_LOCALES.has(evt.locale) ? evt.locale : null,
-          device: VALID_DEVICES.has(evt.device) ? evt.device : null,
-        },
-      }).catch((err: any) => {
-        recordSessionLogFailure(err)
-      })
-    }
-
+    await Promise.allSettled(writes)
     return new NextResponse(null, { status: 204 })
   } catch {
     return new NextResponse(null, { status: 204 }) // never fail visibly
