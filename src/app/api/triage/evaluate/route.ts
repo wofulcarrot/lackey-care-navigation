@@ -22,8 +22,8 @@ export async function POST(request: Request) {
 
     const validLocales = ['en', 'es'] as const
     const validDevices = ['mobile', 'tablet', 'desktop'] as const
-    const safeLocale = validLocales.includes(locale as any) ? locale : 'en'
-    const safeDevice = validDevices.includes(device as any) ? device : 'mobile'
+    const safeLocale: 'en' | 'es' = validLocales.includes(locale as any) ? (locale as 'en' | 'es') : 'en'
+    const safeDevice: 'mobile' | 'tablet' | 'desktop' = validDevices.includes(device as any) ? (device as 'mobile' | 'tablet' | 'desktop') : 'mobile'
 
     if (!careTypeId || !Array.isArray(answers)) {
       return NextResponse.json(

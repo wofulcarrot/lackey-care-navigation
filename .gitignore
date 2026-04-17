@@ -8,3 +8,4 @@ src/payload-types.ts
 test-results/
 playwright-report/
 *.db
+.vercel

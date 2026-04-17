@@ -19,7 +19,7 @@ export default async function EmergencyPage({
     where: { isActive: { equals: true } },
     sort: 'sortOrder',
     limit: 100,
-    locale,
+    locale: locale as 'en' | 'es',
   })
 
   return (

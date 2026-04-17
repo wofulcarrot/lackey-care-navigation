@@ -31,7 +31,7 @@ export default async function TriagePage({
       ],
     },
     depth: 2,
-    locale,
+    locale: locale as 'en' | 'es',
     limit: 1,
   })
 

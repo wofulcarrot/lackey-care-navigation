@@ -21,7 +21,7 @@ export default async function CareTypePage({
     collection: 'care-types',
     sort: 'sortOrder',
     limit: 100,
-    locale,
+    locale: locale as 'en' | 'es',
   })
 
   return (
