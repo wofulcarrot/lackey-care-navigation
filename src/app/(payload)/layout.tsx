@@ -22,8 +22,7 @@ type Args = {
 // minor versions. Works at runtime; strict TS build flags a false mismatch.
 const serverFunction: ServerFunctionClient = async (args) => {
   'use server'
-  // @ts-ignore
-  return handleServerFunctions(args)
+  return handleServerFunctions({ ...args, config, importMap })
 }
 
 export default function Layout({ children }: Args) {

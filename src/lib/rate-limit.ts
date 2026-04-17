@@ -10,14 +10,26 @@ const maxRequests = 30  // 30 requests per minute per IP
 const hits = new Map<string, number[]>()
 
 // Cleanup stale entries every 5 minutes to prevent memory leak
-setInterval(() => {
+const timer = setInterval(() => {
   const now = Date.now()
   for (const [key, timestamps] of hits) {
     const valid = timestamps.filter((t) => now - t < windowMs)
     if (valid.length === 0) hits.delete(key)
     else hits.set(key, valid)
   }
+  // Hard cap: evict oldest entries to bound memory under bot scans / DDoS.
+  // Map iterates in insertion order, so the first keys are the oldest.
+  if (hits.size > 10_000) {
+    const excess = hits.size - 10_000
+    let deleted = 0
+    for (const key of hits.keys()) {
+      if (deleted >= excess) break
+      hits.delete(key)
+      deleted++
+    }
+  }
 }, 300_000)
+if (typeof timer === 'object' && 'unref' in timer) timer.unref()
 
 export function rateLimit(ip: string): { allowed: boolean; remaining: number } {
   const now = Date.now()
@@ -31,4 +43,17 @@ export function rateLimit(ip: string): { allowed: boolean; remaining: number } {
   timestamps.push(now)
   hits.set(ip, timestamps)
   return { allowed: true, remaining: maxRequests - timestamps.length }
+}
+
+/** Extract the client IP from the request, preferring Vercel's trusted header. */
+export function getClientIp(request: Request, fallback = '127.0.0.1'): string {
+  // x-vercel-forwarded-for is infra-set on Vercel and cannot be spoofed by
+  // clients. In Docker/self-hosted deployments it may be forwarded unchanged,
+  // so only trust it when the VERCEL env var is present (Vercel sets this).
+  if (process.env.VERCEL) {
+    const vercelIp = request.headers.get('x-vercel-forwarded-for')
+    if (vercelIp) return vercelIp.split(',')[0].trim()
+  }
+  const forwarded = request.headers.get('x-forwarded-for')
+  return forwarded?.split(',')[0]?.trim() || fallback
 }

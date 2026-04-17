@@ -18,20 +18,22 @@ let totalFailures = 0
 let lastFailureAt: Date | null = null
 let lastErrorMessage: string | null = null
 
+/** Purge expired timestamps in O(n) — find the cutoff index then splice once. */
+function purgeExpired(): void {
+  const cutoff = Date.now() - windowMs
+  let i = 0
+  while (i < failureTimestamps.length && failureTimestamps[i] < cutoff) i++
+  if (i > 0) failureTimestamps.splice(0, i)
+}
+
 // Cleanup stale entries every 5 minutes to prevent unbounded growth.
-setInterval(() => {
-  const now = Date.now()
-  while (failureTimestamps.length > 0 && now - failureTimestamps[0] >= windowMs) {
-    failureTimestamps.shift()
-  }
-}, 300_000)
+const timer = setInterval(purgeExpired, 300_000)
+if (typeof timer === 'object' && 'unref' in timer) timer.unref()
 
 export function recordSessionLogFailure(err: unknown): void {
-  const now = Date.now()
   // Purge expired timestamps at write time too (handles sparse failures).
-  while (failureTimestamps.length > 0 && now - failureTimestamps[0] >= windowMs) {
-    failureTimestamps.shift()
-  }
+  purgeExpired()
+  const now = Date.now()
   failureTimestamps.push(now)
   totalFailures += 1
   lastFailureAt = new Date(now)
@@ -51,10 +53,9 @@ export interface SessionLogStats {
 }
 
 export function getSessionLogStats(): SessionLogStats {
-  const now = Date.now()
-  const failuresLastHour = failureTimestamps.filter((t) => now - t < windowMs).length
+  purgeExpired()
   return {
-    failuresLastHour,
+    failuresLastHour: failureTimestamps.length,
     totalFailures,
     lastFailureAt,
     lastErrorMessage,

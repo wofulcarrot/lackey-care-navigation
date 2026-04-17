@@ -472,8 +472,7 @@ async function main() {
   // by array index with the same IDs.
   console.log('\nBackfilling static content (global) Spanish...')
   try {
-    // @ts-ignore — seed script, Payload's StaticContent type doesn't have an index signature
-    const enGlobal = await payload.findGlobal({ slug: 'static-content', locale: 'en' }) as any
+    const enGlobal = await payload.findGlobal({ slug: 'static-content', locale: 'en' }) as unknown as Record<string, unknown>
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const enBullets: any[] = Array.isArray(enGlobal.virtualCareBullets) ? enGlobal.virtualCareBullets as any[] : []

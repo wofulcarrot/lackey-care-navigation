@@ -2,26 +2,15 @@
 
 import { useTranslations } from 'next-intl'
 import { track } from '@/lib/tracker'
+import type { TriageResource } from '@/lib/types'
 
-interface Resource {
-  name: string
-  type: string
-  address?: { street?: string; city?: string; state?: string; zip?: string }
-  phone?: string
-  website?: string
-  is24_7?: boolean
-  hours?: { day: string; open: string; close: string }[]
-  cost?: string
-  eligibility?: string
-  description?: string
-  temporaryNotice?: string
-  distanceMiles?: number
-}
-
-export function ResourceCard({ resource, distanceLabel }: { resource: Resource; distanceLabel?: string }) {
+export function ResourceCard({ resource, distanceLabel }: { resource: TriageResource; distanceLabel?: string }) {
   const t = useTranslations('results')
   const addr = resource.address
-  const addressStr = addr ? `${addr.street ?? ''}, ${addr.city ?? ''}, ${addr.state ?? ''} ${addr.zip ?? ''}`.trim() : ''
+  const parts = addr
+    ? [addr.street, addr.city, [addr.state, addr.zip].filter(Boolean).join(' ')].filter(Boolean)
+    : []
+  const addressStr = parts.join(', ')
   const mapsUrl = addressStr
     ? `https://maps.google.com/?q=${encodeURIComponent(addressStr)}`
     : null

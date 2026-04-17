@@ -80,16 +80,22 @@ export default buildConfig({
     defaultLocale: 'en',
     fallback: true,
   },
-  secret: (() => {
-    const s = process.env.PAYLOAD_SECRET
-    if (!s || s.length < 16) {
-      throw new Error(
-        'PAYLOAD_SECRET must be set and at least 16 characters. ' +
+  // Build-time placeholder allows `next build` on Vercel (config runs at build
+  // time where env vars may not be injected). Runtime guard below catches it.
+  secret: process.env.PAYLOAD_SECRET || 'build-time-placeholder-not-for-production',
+  onInit: async (payload) => {
+    if (
+      !process.env.PAYLOAD_SECRET ||
+      process.env.PAYLOAD_SECRET.length < 32 ||
+      process.env.PAYLOAD_SECRET.includes('placeholder')
+    ) {
+      payload.logger.error(
+        'PAYLOAD_SECRET must be a 32+ char random string. ' +
         'Generate one with: openssl rand -base64 32',
       )
+      process.exit(1)
     }
-    return s
-  })(),
+  },
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

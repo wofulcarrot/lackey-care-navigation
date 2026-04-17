@@ -5,6 +5,8 @@
  * Endpoint: Places API v3 — https://location.foursquare.com/developer/reference/places-api-overview
  */
 
+import { METERS_PER_MILE } from '@/lib/constants'
+
 export interface NearbyUrgentCare {
   /** Foursquare venue ID (prefixed 'fsq:' so it can't collide with CareResource numeric IDs) */
   id: string
@@ -92,7 +94,7 @@ export async function searchNearbyUrgentCares(
 
   // Cap server-side so the client can't demand huge searches
   const cappedMiles = Math.min(Math.max(radiusMiles, 1), 25)
-  const radiusMeters = Math.round(cappedMiles * 1609.34)
+  const radiusMeters = Math.round(cappedMiles * METERS_PER_MILE)
 
   const params = new URLSearchParams({
     ll: `${lat.toFixed(6)},${lon.toFixed(6)}`,

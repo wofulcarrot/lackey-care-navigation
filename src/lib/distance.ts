@@ -108,13 +108,10 @@ export async function lookupZipAnywhere(zip: string): Promise<{ lat: number; lon
   // Remote fallback — Zippopotam.us is a free, CORS-enabled public API that
   // returns the lat/lng centroid of any US ZIP. No API key required.
   try {
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 4000)
     const res = await fetch(`https://api.zippopotam.us/us/${cleaned}`, {
-      signal: controller.signal,
+      signal: AbortSignal.timeout(4000),
       headers: { Accept: 'application/json' },
     })
-    clearTimeout(timer)
     if (!res.ok) return null
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await res.json()

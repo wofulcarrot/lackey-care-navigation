@@ -2,16 +2,15 @@ import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { calculateScore, classifyUrgency, checkEscalation } from '@/lib/triage-engine'
-import { rateLimit } from '@/lib/rate-limit'
-import { recordSessionLogFailure } from '@/lib/observability'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { safeLocale, safeDevice, logSession } from '@/lib/triage-session'
 
 // Allow up to 30s for cold-start (Neon wake + Payload init)
 export const maxDuration = 30
 
 export async function POST(request: Request) {
   try {
-    const forwarded = request.headers.get('x-forwarded-for')
-    const ip = forwarded?.split(',')[0]?.trim() ?? '127.0.0.1'
+    const ip = getClientIp(request)
     const { allowed } = rateLimit(ip)
     if (!allowed) {
       return NextResponse.json(
@@ -21,12 +20,10 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { careTypeId, answers, locale = 'en', device = 'mobile' } = body
+    const { careTypeId, answers } = body
 
-    const validLocales = ['en', 'es'] as const
-    const validDevices = ['mobile', 'tablet', 'desktop'] as const
-    const safeLocale: 'en' | 'es' = validLocales.includes(locale as any) ? (locale as 'en' | 'es') : 'en'
-    const safeDevice: 'mobile' | 'tablet' | 'desktop' = validDevices.includes(device as any) ? (device as 'mobile' | 'tablet' | 'desktop') : 'mobile'
+    const locale = safeLocale(body.locale)
+    const device = safeDevice(body.device)
 
     if (!careTypeId || !Array.isArray(answers)) {
       return NextResponse.json(
@@ -49,33 +46,21 @@ export async function POST(request: Request) {
 
     const payload = await getPayload({ config })
 
+    const numericCareType = Number(careTypeId) || null
+
     // Check for immediate escalation
     if (checkEscalation(answers)) {
-      // Await session log — Vercel freezes the runtime after response, so
-      // fire-and-forget writes get lost on serverless.
-      const sessionId = crypto.randomUUID()
-      try {
-        await payload.create({
-          collection: 'triage-sessions',
-          overrideAccess: true,
-          data: {
-            sessionId,
-            careTypeSelected: Number(careTypeId),
-            urgencyResult: null,
-            resourcesShown: [],
-            virtualCareOffered: false,
-            emergencyScreenTriggered: false,
-            completedFlow: true,
-            locale: safeLocale,
-            device: safeDevice,
-            questionSetVersion: body.questionSetVersion ?? null,
-          },
-        })
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        console.error('[triage-session] Failed to log escalation session:', message)
-        recordSessionLogFailure(err)
-      }
+      await logSession(payload, {
+        careTypeSelected: numericCareType,
+        urgencyResult: null,
+        resourcesShown: [],
+        virtualCareOffered: false,
+        emergencyScreenTriggered: false,
+        completedFlow: true,
+        locale,
+        device,
+        questionSetVersion: body.questionSetVersion ?? null,
+      }, 'escalation session')
 
       return NextResponse.json({
         escalate: true,
@@ -91,7 +76,7 @@ export async function POST(request: Request) {
       collection: 'urgency-levels',
       sort: '-scoreThreshold',
       limit: 100,
-      locale: safeLocale,
+      locale,
     })
     const urgencyLevelsForClient = urgencyLevelsResult.docs.map((d) => ({
       id: String(d.id),
@@ -121,7 +106,7 @@ export async function POST(request: Request) {
           { urgencyLevel: { equals: urgencyLevel.id } },
         ],
       },
-      locale: safeLocale,
+      locale,
       depth: 2,
     })
 
@@ -129,7 +114,7 @@ export async function POST(request: Request) {
 
     if (!rule) {
       // Fallback: no routing rule found
-      const staticContent = await payload.findGlobal({ slug: 'static-content', locale: safeLocale })
+      const staticContent = await payload.findGlobal({ slug: 'static-content', locale })
       return NextResponse.json({
         escalate: false,
         urgencyLevel,
@@ -141,34 +126,21 @@ export async function POST(request: Request) {
       })
     }
 
-    // Log anonymous session (fire-and-forget).
     // Await session log — Vercel freezes the runtime after response, so
     // fire-and-forget writes get lost on serverless.
-    const sessionId = crypto.randomUUID()
-    try {
-      await payload.create({
-        collection: 'triage-sessions',
-        overrideAccess: true,
-        data: {
-          sessionId,
-          careTypeSelected: Number(careTypeId),
-          urgencyResult: Number(urgencyLevel.id),
-          resourcesShown: Array.isArray(rule.resources)
-            ? rule.resources.map((r: any) => (typeof r === 'object' ? r.id : r))
-            : [],
-          virtualCareOffered: rule.virtualCareEligible ?? false,
-          emergencyScreenTriggered: false,
-          completedFlow: true,
-          locale: safeLocale,
-          device: safeDevice,
-          questionSetVersion: body.questionSetVersion ?? null,
-        },
-      })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      console.error('[triage-session] Failed to log session:', message)
-      recordSessionLogFailure(err)
-    }
+    await logSession(payload, {
+      careTypeSelected: numericCareType,
+      urgencyResult: Number(urgencyLevel.id) || null,
+      resourcesShown: Array.isArray(rule.resources)
+        ? rule.resources.map((r: any) => (typeof r === 'object' ? Number(r.id) : Number(r))).filter(Boolean)
+        : [],
+      virtualCareOffered: rule.virtualCareEligible ?? false,
+      emergencyScreenTriggered: false,
+      completedFlow: true,
+      locale,
+      device,
+      questionSetVersion: body.questionSetVersion ?? null,
+    }, 'session')
 
     return NextResponse.json({
       escalate: false,

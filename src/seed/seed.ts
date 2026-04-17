@@ -1,6 +1,11 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('[seed] Refusing to run in production.')
+  process.exit(1)
+}
+
 import { emergencySymptoms } from './emergency-symptoms'
 import { careTypes } from './care-types'
 import { urgencyLevels } from './urgency-levels'

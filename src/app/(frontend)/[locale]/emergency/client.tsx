@@ -5,6 +5,8 @@ import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { EmergencyAlert } from '@/components/EmergencyAlert'
 import { track } from '@/lib/tracker'
+import { SESSION_KEYS } from '@/lib/constants'
+import { logEmergencyBeacon } from '@/lib/log-emergency-beacon'
 
 interface Symptom {
   id: string
@@ -32,44 +34,11 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
   function handleSubmit() {
     if (checked.size > 0) {
       track('emergency_symptom')
-      // Fire-and-forget analytics log so the CEO dashboard's emergencyCount
-      // metric reflects real events (not just seeded data). Never await —
-      // the full-screen 911 alert must render immediately.
-      try {
-        const width = typeof window !== 'undefined' ? window.innerWidth : 0
-        const device = width < 640 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop'
-        const payload = JSON.stringify({ locale, device })
-
-        // Prefer sendBeacon where available — it's designed to survive
-        // page navigation. Fall back to fetch with keepalive for the same
-        // guarantee when sendBeacon isn't present.
-        const beacon =
-          typeof navigator !== 'undefined' &&
-          typeof navigator.sendBeacon === 'function'
-            ? navigator.sendBeacon(
-                '/api/triage/log-emergency',
-                new Blob([payload], { type: 'application/json' }),
-              )
-            : false
-
-        if (!beacon) {
-          void fetch('/api/triage/log-emergency', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload,
-            keepalive: true,
-          }).catch(() => {
-            /* swallow — never block the patient flow */
-          })
-        }
-      } catch {
-        /* swallow — never block the patient flow */
-      }
-
+      logEmergencyBeacon({ locale })
       setShowAlert(true)
     } else {
       track('emergency_none')
-      sessionStorage.setItem('emergencyScreenCompleted', 'true')
+      sessionStorage.setItem(SESSION_KEYS.emergencyScreen, 'true')
       router.push(`/${locale}/care-type`)
     }
   }

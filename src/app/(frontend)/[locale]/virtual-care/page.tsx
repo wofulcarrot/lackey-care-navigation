@@ -14,7 +14,7 @@ export default async function VirtualCarePage({
   return (
     <VirtualCarePageClient
       virtualCareUrl={content.virtualCareUrl}
-      bullets={content.virtualCareBullets?.map((b: any) => b.text) ?? []}
+      bullets={content.virtualCareBullets?.map((b: any) => b.text).filter(Boolean) ?? []}
     />
   )
 }

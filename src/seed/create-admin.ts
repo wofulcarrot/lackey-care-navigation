@@ -10,11 +10,17 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('[seed] Refusing to run in production.')
+  process.exit(1)
+}
+
 async function main() {
   const email = process.argv[2] || 'admin@lackey.local'
   const password = process.argv[3]
 
-  // In production, require an explicit password argument — never use a default
+  // In production, require an explicit password argument — never use a default.
+  // The NODE_ENV guard at the top already blocks production, but be explicit.
   if (process.env.NODE_ENV === 'production' && !password) {
     console.error('[create-admin] ERROR: Password argument is required in production.')
     console.error('  Usage: npx tsx src/seed/create-admin.ts admin@lackey.org YOUR_STRONG_PASSWORD')

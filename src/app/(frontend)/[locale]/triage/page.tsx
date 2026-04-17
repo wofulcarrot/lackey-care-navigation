@@ -41,16 +41,21 @@ export default async function TriagePage({
     redirect(`/${locale}/results?fallback=true`)
   }
 
-  // Extract the care type name so the client can choose the right
-  // escalation screen (CrisisAlert for Behavioral Health, EmergencyAlert
-  // for everything else). With depth: 2, careType is populated as an object.
-  const careTypeObj = questionSet.careType as { name?: string } | undefined
-  const careTypeName = typeof careTypeObj === 'object' ? (careTypeObj?.name ?? '') : ''
+  // Extract the BH flag so the client can choose the right escalation screen
+  // (CrisisAlert for Behavioral Health, EmergencyAlert for everything else).
+  // With depth: 2, careType is populated as an object. Fall back to name
+  // matching for legacy care types that predate the isBehavioralHealth boolean.
+  const careTypeObj = questionSet.careType as { name?: string; isBehavioralHealth?: boolean } | undefined
+  const isBehavioralHealth =
+    typeof careTypeObj === 'object' &&
+    (careTypeObj?.isBehavioralHealth === true ||
+      careTypeObj?.name === 'Behavioral Health' ||
+      careTypeObj?.name === 'Salud mental')
 
   return (
     <TriageClient
       careTypeId={careTypeId}
-      careTypeName={careTypeName}
+      isBehavioralHealth={isBehavioralHealth}
       questions={questionSet.questions as any}
       questionSetVersion={questionSet.version}
     />

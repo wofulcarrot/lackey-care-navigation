@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { rateLimit } from '@/lib/rate-limit'
-import { recordSessionLogFailure } from '@/lib/observability'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { safeLocale, safeDevice, logSession } from '@/lib/triage-session'
 
 export const maxDuration = 30
 
@@ -20,8 +20,7 @@ export const maxDuration = 30
  */
 export async function POST(request: Request) {
   try {
-    const forwarded = request.headers.get('x-forwarded-for')
-    const ip = forwarded?.split(',')[0]?.trim() ?? '127.0.0.1'
+    const ip = getClientIp(request)
     const { allowed } = rateLimit(`emergency:${ip}`)
     if (!allowed) {
       return NextResponse.json(
@@ -30,49 +29,33 @@ export async function POST(request: Request) {
       )
     }
 
-    let body: { locale?: unknown; device?: unknown } = {}
+    let body: Record<string, unknown> = {}
     try {
       body = await request.json()
     } catch {
       // Empty/invalid body is acceptable — we just fall back to defaults.
-      body = {}
     }
 
-    const { locale = 'en', device = 'mobile' } = body
-    const validLocales = ['en', 'es'] as const
-    const validDevices = ['mobile', 'tablet', 'desktop'] as const
-    const safeLocale = validLocales.includes(locale as any) ? (locale as 'en' | 'es') : 'en'
-    const safeDevice = validDevices.includes(device as any)
-      ? (device as 'mobile' | 'tablet' | 'desktop')
-      : 'mobile'
+    const { careTypeId } = body
+    const safeCareTypeId =
+      typeof careTypeId === 'string' && careTypeId.length > 0
+        ? Number(careTypeId) || null
+        : null
 
     const payload = await getPayload({ config })
 
-    // Await the write — on Vercel Serverless, the runtime freezes after
-    // the response is sent, so fire-and-forget writes get lost.
-    const sessionId = crypto.randomUUID()
-    try {
-      await payload.create({
-        collection: 'triage-sessions',
-        overrideAccess: true,
-        data: {
-          sessionId,
-          careTypeSelected: null,
-          urgencyResult: null,
-          resourcesShown: [],
-          virtualCareOffered: false,
-          emergencyScreenTriggered: true,
-          completedFlow: false,
-          locale: safeLocale,
-          device: safeDevice,
-          questionSetVersion: null,
-        },
-      })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      console.error('[triage-session] Failed to log emergency screen event:', message)
-      recordSessionLogFailure(err)
-    }
+    await logSession(payload, {
+      careTypeSelected: safeCareTypeId,
+      urgencyResult: null,
+      resourcesShown: [],
+      virtualCareOffered: false,
+      emergencyScreenTriggered: true,
+      isCrisis: body.isCrisis === true,
+      completedFlow: false,
+      locale: safeLocale(body.locale),
+      device: safeDevice(body.device),
+      questionSetVersion: null,
+    }, 'emergency screen event')
 
     return new NextResponse(null, { status: 204 })
   } catch {

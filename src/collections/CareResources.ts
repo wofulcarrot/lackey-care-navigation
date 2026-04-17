@@ -12,6 +12,16 @@ export const CareResources: CollectionConfig = {
     pagination: { defaultLimit: 25 },
   },
   defaultSort: 'name',
+  hooks: {
+    afterRead: [
+      ({ doc }) => {
+        if (doc.temporaryNoticeExpires && new Date(doc.temporaryNoticeExpires) < new Date()) {
+          return { ...doc, temporaryNotice: null }
+        }
+        return doc
+      },
+    ],
+  },
   access: {
     read: () => true,
     create: ({ req }) => req.user?.role === 'admin' || req.user?.role === 'editor',
