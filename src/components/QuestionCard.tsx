@@ -8,8 +8,11 @@ interface Answer {
   label: string
   urgencyWeight: number
   escalateImmediately: boolean
-  nextQuestion?: string | null
-  redirectToCareType?: string | null
+  // These relationship fields come from Payload with depth>0 and may be
+  // objects, strings, or numbers. QuestionCard doesn't use them — they're
+  // only here so the type is compatible with useTriage's Answer shape.
+  nextQuestion?: string | number | { id: string | number } | null
+  redirectToCareType?: string | number | { id: string | number } | null
 }
 
 interface QuestionCardProps {

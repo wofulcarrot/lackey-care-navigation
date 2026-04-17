@@ -45,14 +45,15 @@ async function seed() {
     console.log('Seeding routing rules...')
     await createRoutingRules(payload, createdCareTypes, createdLevels, createdResources)
 
+    // Note: heroTitle, heroSubtitle, virtualCareHeading, privacyNote,
+    // footerText, and disclaimers now live in src/i18n/messages/*.json
+    // (removed from StaticContent in round-3 cleanup). Only the fields
+    // below remain as CMS-managed globals.
     console.log('Seeding static content...')
     await payload.updateGlobal({
       slug: 'static-content',
       data: {
-        heroTitle: 'Get the right care, right now',
-        heroSubtitle: 'Free help finding the care you need — no insurance required',
         virtualCareUrl: 'https://luca.zipnosis.com/guest_visits/new?l=en',
-        virtualCareHeading: 'You may be able to get free care right now',
         virtualCareBullets: [
           { text: 'Free for adults 18+' },
           { text: 'Available 24/7' },
@@ -62,8 +63,6 @@ async function seed() {
         ],
         eligibilityIntakeUrl: 'https://form.jotform.com/lackey-eligibility',
         clinicPhone: '(757) 547-7484',
-        privacyNote: 'We don\'t collect personal information.',
-        footerText: 'Powered by Lackey Clinic',
       },
     })
 

@@ -9,7 +9,7 @@ export default async function VirtualCarePage({
 }) {
   const { locale } = await params
   const payload = await getPayload({ config })
-  const content = await payload.findGlobal({ slug: 'static-content', locale })
+  const content = await payload.findGlobal({ slug: 'static-content', locale: locale as 'en' | 'es' })
 
   return (
     <VirtualCarePageClient

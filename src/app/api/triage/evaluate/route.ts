@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         overrideAccess: true,
         data: {
           sessionId,
-          careTypeSelected: Number(careTypeId) || careTypeId,
+          careTypeSelected: Number(careTypeId),
           urgencyResult: null,
           resourcesShown: [],
           virtualCareOffered: false,
@@ -159,8 +159,8 @@ export async function POST(request: Request) {
         // Relationship fields expect numeric IDs. careTypeId comes from the
         // URL param (already numeric-ish), urgencyLevel.id was stringified
         // for the client response — convert both back to numbers.
-        careTypeSelected: Number(careTypeId) || careTypeId,
-        urgencyResult: Number(urgencyLevel.id) || urgencyLevel.id,
+        careTypeSelected: Number(careTypeId),
+        urgencyResult: Number(urgencyLevel.id),
         resourcesShown: Array.isArray(rule.resources)
           ? rule.resources.map((r: any) => (typeof r === 'object' ? r.id : r))
           : [],
@@ -183,7 +183,6 @@ export async function POST(request: Request) {
       resources: rule.resources,
       virtualCareEligible: rule.virtualCareEligible,
       actionText: rule.actionText,
-      nextSteps: rule.nextSteps,
     })
   } catch (error) {
     return NextResponse.json(

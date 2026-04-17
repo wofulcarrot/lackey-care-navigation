@@ -24,12 +24,15 @@ interface TriageResource {
   type: string
   address?: ResourceAddress
   phone?: string
+  website?: string
   hours?: { day: string; open: string; close: string }[]
   cost?: string
   eligibility?: string
   temporaryNotice?: string
   description?: string
   is24_7?: boolean
+  distanceMiles?: number
+  distanceMeters?: number
 }
 
 interface TriageResult {

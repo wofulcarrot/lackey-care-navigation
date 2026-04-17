@@ -472,7 +472,8 @@ async function main() {
   // by array index with the same IDs.
   console.log('\nBackfilling static content (global) Spanish...')
   try {
-    const enGlobal = await payload.findGlobal({ slug: 'static-content', locale: 'en' }) as Record<string, unknown>
+    // @ts-ignore — seed script, Payload's StaticContent type doesn't have an index signature
+    const enGlobal = await payload.findGlobal({ slug: 'static-content', locale: 'en' }) as any
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const enBullets: any[] = Array.isArray(enGlobal.virtualCareBullets) ? enGlobal.virtualCareBullets as any[] : []
@@ -495,26 +496,21 @@ async function main() {
       'No se recetarán sustancias controladas a través de las visitas de atención virtual.',
     ]
 
+    // Note: heroTitle, heroSubtitle, virtualCareHeading, privacyNote,
+    // footerText, and disclaimers were removed from StaticContent in the
+    // round-3 cleanup (those strings now live in i18n/messages/*.json).
+    // Only virtualCareBullets remains as a CMS-managed localized field.
     await payload.updateGlobal({
       slug: 'static-content',
       locale: 'es',
       data: {
-        heroTitle: 'Obtenga la atención adecuada ahora mismo',
-        heroSubtitle: 'Ayuda gratuita para encontrar la atención que necesita — sin seguro médico requerido',
-        virtualCareHeading: 'Es posible que pueda recibir atención gratuita ahora mismo',
-        virtualCareBullets: enBullets.map((b, i) => ({
+        virtualCareBullets: enBullets.map((b: any, i: number) => ({
           id: b.id,
           text: esBulletTexts[i] ?? b.text,
         })),
-        disclaimers: enDisclaimers.map((d, i) => ({
-          id: d.id,
-          text: esDisclaimerTexts[i] ?? d.text,
-        })),
-        privacyNote: 'No recopilamos información personal.',
-        footerText: 'Desarrollado por Lackey Clinic',
       },
     })
-    console.log('  ✓ Static content Spanish localized (hero, bullets, disclaimers, footer)')
+    console.log('  ✓ Static content Spanish localized (virtual care bullets)')
   } catch (err) {
     console.error('  ✗ Static content update failed:', (err as Error).message)
   }
