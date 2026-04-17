@@ -75,18 +75,41 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
       setHydrated(true)
       return
     }
-    try {
-      const stored = sessionStorage.getItem('triageResult')
-      if (stored) {
-        setData(JSON.parse(stored) as TriageResult)
-        // NOTE: we intentionally do NOT removeItem here. The component
-        // remounts when the user toggles locale (EN ↔ ES), and losing the
-        // stored result would dump them into the ErrorFallback. The item
-        // is cleared explicitly on Start Over and by landing page.
+
+    // If the patient completed triage in one locale and then toggled to
+    // another, the stored result has localized data in the wrong language.
+    // Re-fetch from the API with the current locale to fix the mismatch.
+    async function loadResult() {
+      try {
+        const storedInputs = sessionStorage.getItem('triageInputs')
+        const stored = sessionStorage.getItem('triageResult')
+
+        if (storedInputs) {
+          // Re-evaluate with the current page locale so all content
+          // (urgency names, action text, resource descriptions) matches.
+          const inputs = JSON.parse(storedInputs)
+          const res = await fetch('/api/triage/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...inputs, locale }),
+          })
+          if (res.ok) {
+            const freshData = await res.json()
+            setData(freshData as TriageResult)
+            sessionStorage.setItem('triageResult', JSON.stringify(freshData))
+          } else if (stored) {
+            // API failed — fall back to cached result
+            setData(JSON.parse(stored) as TriageResult)
+          }
+        } else if (stored) {
+          // No inputs saved (older session) — use cached result as-is
+          setData(JSON.parse(stored) as TriageResult)
+        }
+      } catch {
+        // fall through to ErrorFallback below
       }
-    } catch {
-      // fall through to ErrorFallback below
     }
+    loadResult()
 
     // Auto-populate location from the /location screen. If the patient
     // already shared their GPS/ZIP there, distances show immediately on
@@ -216,6 +239,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
             // so the next run starts clean from the landing page.
             try {
               sessionStorage.removeItem('triageResult')
+              sessionStorage.removeItem('triageInputs')
               sessionStorage.removeItem('triageUserLocation')
               sessionStorage.removeItem('emergencyScreenCompleted')
             } catch {

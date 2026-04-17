@@ -61,6 +61,8 @@ export function TriageClient({
       .then((r) => r.json())
       .then((data) => {
         sessionStorage.setItem('triageResult', JSON.stringify(data))
+        // Store the inputs so results page can re-evaluate on locale change
+        sessionStorage.setItem('triageInputs', JSON.stringify({ careTypeId, answers, questionSetVersion }))
         track('triage_completed', { careType: careTypeId, urgencyLevel: data?.urgencyLevel?.name })
         // When urgency is Urgent, route through the location screen so we
         // can swap in real nearby urgent cares via Foursquare. All other
