@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { track } from '@/lib/tracker'
 
 interface Props {
   virtualCareUrl: string
@@ -27,12 +28,13 @@ export function VirtualCareInterstitial({ virtualCareUrl, bullets, onShowOther }
           href={virtualCareUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => track('virtual_care_click')}
           className="block w-full bg-green-700 hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-400 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]"
         >
           {t('startVisit')}
         </a>
         <button
-          onClick={onShowOther}
+          onClick={() => { track('virtual_care_skip'); onShowOther() }}
           className="block w-full bg-gray-100 dark:bg-gray-800 dark:text-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
         >
           {t('showOther')}

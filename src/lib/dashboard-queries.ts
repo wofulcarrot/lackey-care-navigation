@@ -36,6 +36,10 @@ export interface DashboardData {
     target: number
     percentOfTarget: number
   }
+  /** Comprehensive funnel: count of each event type in the date range */
+  funnel: { name: string; count: number; color: string }[]
+  /** Resource engagement: calls, directions, website clicks per provider */
+  resourceEngagement: { name: string; calls: number; directions: number; website: number; total: number }[]
 }
 
 
@@ -227,6 +231,66 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
   const annualRate = days > 0 ? Math.round((virtualCount / days) * 365) : 0
   const percentOfTarget = Math.min(100, Math.round((annualRate / ANNUAL_VIRTUAL_TARGET) * 100))
 
+  // Comprehensive funnel — query TriageEvents for step counts
+  let funnel: { name: string; count: number; color: string }[] = []
+  let resourceEngagement: { name: string; calls: number; directions: number; website: number; total: number }[] = []
+
+  try {
+    const eventsRes = await (payload.find as any)({
+      collection: 'triage-events',
+      where: {
+        createdAt: {
+          greater_than_equal: range.start.toISOString(),
+          less_than_equal: range.end.toISOString(),
+        },
+      },
+      limit: 50000,
+      pagination: false,
+      depth: 0,
+      overrideAccess: true,
+    })
+
+    const eventDocs = eventsRes.docs as Array<{ event: string; metadata?: any }>
+    const eventCounts = new Map<string, number>()
+    const resourceCalls = new Map<string, { calls: number; directions: number; website: number }>()
+
+    for (const e of eventDocs) {
+      eventCounts.set(e.event, (eventCounts.get(e.event) ?? 0) + 1)
+
+      // Resource engagement tracking
+      const resName = e.metadata?.resourceName as string | undefined
+      if (resName && (e.event === 'resource_call' || e.event === 'resource_directions' || e.event === 'resource_website')) {
+        if (!resourceCalls.has(resName)) resourceCalls.set(resName, { calls: 0, directions: 0, website: 0 })
+        const entry = resourceCalls.get(resName)!
+        if (e.event === 'resource_call') entry.calls++
+        if (e.event === 'resource_directions') entry.directions++
+        if (e.event === 'resource_website') entry.website++
+      }
+    }
+
+    const funnelSteps = [
+      { event: 'emergency_screen_view', label: 'Emergency screen', color: '#1B4F72' },
+      { event: 'emergency_none', label: 'Passed emergency', color: '#2471A3' },
+      { event: 'care_type_selected', label: 'Care type selected', color: '#2E86C1' },
+      { event: 'triage_question', label: 'Questions answered', color: '#3498DB' },
+      { event: 'triage_completed', label: 'Triage completed', color: '#5DADE2' },
+      { event: 'results_view', label: 'Results viewed', color: '#85C1E9' },
+      { event: 'resource_call', label: 'Phone tapped', color: '#10b981' },
+      { event: 'resource_directions', label: 'Directions tapped', color: '#3b82f6' },
+    ]
+    funnel = funnelSteps.map((s) => ({
+      name: s.label,
+      count: eventCounts.get(s.event) ?? 0,
+      color: s.color,
+    }))
+
+    resourceEngagement = [...resourceCalls.entries()]
+      .map(([name, counts]) => ({ name, ...counts, total: counts.calls + counts.directions + counts.website }))
+      .sort((a, b) => b.total - a.total)
+  } catch {
+    // TriageEvents collection may not exist yet (fresh DB) — graceful fallback
+  }
+
   return {
     dateRange: range,
     days,
@@ -252,6 +316,8 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
       target: ANNUAL_VIRTUAL_TARGET,
       percentOfTarget,
     },
+    funnel,
+    resourceEngagement,
   }
 }
 

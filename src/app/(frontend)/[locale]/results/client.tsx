@@ -8,6 +8,7 @@ import { VirtualCareInterstitial } from '@/components/VirtualCareInterstitial'
 import { ErrorFallback } from '@/components/ErrorFallback'
 import { LocationPrompt } from '@/components/LocationPrompt'
 import { distanceMiles, formatDistance } from '@/lib/distance'
+import { track } from '@/lib/tracker'
 
 interface ResourceAddress {
   street?: string
@@ -103,6 +104,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
     }
 
     setHydrated(true)
+    track('results_view')
   }, [isFallback])
 
   if (!hydrated) {
@@ -125,7 +127,10 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
       <VirtualCareInterstitial
         virtualCareUrl={virtualCareUrl}
         bullets={virtualCareBullets}
-        onShowOther={() => setShowResources(true)}
+        onShowOther={() => {
+          track('virtual_care_skip')
+          setShowResources(true)
+        }}
       />
     )
   }
@@ -199,12 +204,14 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
           href={`${eligibilityUrl}?utm_source=triage&utm_medium=referral`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => track('eligibility_click')}
           className="block w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]"
         >
           {t('eligibility')}
         </a>
         <button
           onClick={() => {
+            track('start_over')
             // Clear stored triage data and the emergency-screen flow flag
             // so the next run starts clean from the landing page.
             try {

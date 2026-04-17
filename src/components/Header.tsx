@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter, usePathname } from 'next/navigation'
 import { ThemeToggle } from './ThemeToggle'
+import { track } from '@/lib/tracker'
 
 export function Header() {
   const locale = useLocale()
@@ -11,6 +12,7 @@ export function Header() {
   const pathname = usePathname()
 
   function switchLocale(newLocale: string) {
+    track('language_toggle', { from: locale, to: newLocale })
     const segments = pathname.split('/')
     segments[1] = newLocale
     router.replace(segments.join('/'))

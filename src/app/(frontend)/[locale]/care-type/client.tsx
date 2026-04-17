@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { CareTypeCard } from '@/components/CareTypeCard'
+import { track } from '@/lib/tracker'
 
 interface CareType {
   id: string
@@ -34,7 +35,10 @@ export function CareTypeSelectionClient({ careTypes }: { careTypes: CareType[] }
             icon={ct.icon}
             name={ct.name}
             description={ct.description}
-            onClick={() => router.push(`/${locale}/triage?careType=${ct.id}`)}
+            onClick={() => {
+              track('care_type_selected', { careType: ct.name })
+              router.push(`/${locale}/triage?careType=${ct.id}`)
+            }}
           />
         ))}
       </div>

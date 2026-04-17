@@ -16,6 +16,7 @@ import { RoutingRules } from './collections/RoutingRules'
 import { EmergencySymptoms } from './collections/EmergencySymptoms'
 import { StaticContent } from './collections/StaticContent'
 import { TriageSessions } from './collections/TriageSessions'
+import { TriageEvents } from './collections/TriageEvents'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -56,6 +57,7 @@ export default buildConfig({
     RoutingRules,
     UrgencyLevels,
     TriageSessions,
+    TriageEvents,
     Users,
   ],
   globals: [StaticContent],

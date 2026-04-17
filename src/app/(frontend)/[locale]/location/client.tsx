@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { LocationPrompt } from '@/components/LocationPrompt'
 import { ErrorFallback } from '@/components/ErrorFallback'
+import { track } from '@/lib/tracker'
 
 interface Props {
   locale: string
@@ -82,6 +83,7 @@ export function LocationScreenClient({ locale }: Props) {
 
   async function handleLocate(loc: { lat: number; lon: number; source: 'gps' | 'zip' }) {
     if (!result) return
+    track('location_shared')
     setStatus('searching')
 
     // Persist the patient's coordinates so the results page can display
@@ -137,6 +139,7 @@ export function LocationScreenClient({ locale }: Props) {
   }
 
   function handleSkip() {
+    track('location_skipped')
     // Patient declined to share location but they're still in the Urgent
     // flow — they need to see the urgent-care resource list directly, not
     // the Virtual Care interstitial. Keep the seeded urgent cares; just

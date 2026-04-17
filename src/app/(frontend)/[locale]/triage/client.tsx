@@ -8,6 +8,7 @@ import { QuestionCard } from '@/components/QuestionCard'
 import { ProgressBar } from '@/components/ProgressBar'
 import { EmergencyAlert } from '@/components/EmergencyAlert'
 import { CrisisAlert } from '@/components/CrisisAlert'
+import { track } from '@/lib/tracker'
 
 interface Props {
   careTypeId: string
@@ -60,6 +61,7 @@ export function TriageClient({
       .then((r) => r.json())
       .then((data) => {
         sessionStorage.setItem('triageResult', JSON.stringify(data))
+        track('triage_completed', { careType: careTypeId, urgencyLevel: data?.urgencyLevel?.name })
         // When urgency is Urgent, route through the location screen so we
         // can swap in real nearby urgent cares via Foursquare. All other
         // urgency levels proceed directly to results as before. We match
@@ -79,6 +81,11 @@ export function TriageClient({
         router.push(`/${locale}/results?fallback=true`)
       })
   }, [triage.completed]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleAnswer(answers: any[]) {
+    track('triage_question', { questionIndex: triage.questionNumber, totalQuestions: triage.totalQuestions })
+    triage.submitAnswer(answers)
+  }
 
   // Early returns AFTER all hooks (React rules of hooks)
   // Behavioral Health escalation shows the dedicated suicide prevention
@@ -114,7 +121,7 @@ export function TriageClient({
         helpText={triage.currentQuestion.helpText}
         type={triage.currentQuestion.type}
         answers={triage.currentQuestion.answers}
-        onSubmit={triage.submitAnswer}
+        onSubmit={handleAnswer}
       />
     </div>
   )

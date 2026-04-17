@@ -10,6 +10,7 @@ import { ReachCard } from './components/ReachCard'
 import { HourlyHeatmap } from './components/HourlyHeatmap'
 import ReferralMap from './components/ReferralMapClient'
 import { ExportButton } from './components/ExportButton'
+import { FunnelChart } from './components/FunnelChart'
 
 export const dynamic = 'force-dynamic'
 
@@ -128,6 +129,49 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           Session volume by day of week and hour of day (local time). Darker cells = more sessions.
         </p>
         <HourlyHeatmap data={data.hourlyHeatmap} />
+      </section>
+
+      {/* Patient funnel + Resource engagement */}
+      <section className="grid gap-3 lg:grid-cols-2">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-1 text-base font-semibold text-gray-800">Patient funnel</h2>
+          <p className="mb-3 text-xs text-gray-600">Drop-off at each step of the triage flow</p>
+          <FunnelChart data={data.funnel} />
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-1 text-base font-semibold text-gray-800">Resource engagement</h2>
+          <p className="mb-3 text-xs text-gray-600">Which resources patients actually interact with</p>
+          {data.resourceEngagement.length === 0 ? (
+            <div className="flex h-64 items-center justify-center text-sm text-gray-500">
+              No resource engagement data yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-xs font-semibold text-gray-600">
+                    <th className="pb-2">Provider</th>
+                    <th className="pb-2 text-center">Calls</th>
+                    <th className="pb-2 text-center">Directions</th>
+                    <th className="pb-2 text-center">Website</th>
+                    <th className="pb-2 text-center">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.resourceEngagement.slice(0, 10).map((r) => (
+                    <tr key={r.name} className="border-b border-gray-100">
+                      <td className="py-2 pr-4 text-gray-800 truncate max-w-[200px]" title={r.name}>{r.name}</td>
+                      <td className="py-2 text-center font-semibold text-blue-600">{r.calls || '\u2014'}</td>
+                      <td className="py-2 text-center font-semibold text-green-600">{r.directions || '\u2014'}</td>
+                      <td className="py-2 text-center font-semibold text-purple-600">{r.website || '\u2014'}</td>
+                      <td className="py-2 text-center font-bold">{r.total}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Partner referrals + Map */}

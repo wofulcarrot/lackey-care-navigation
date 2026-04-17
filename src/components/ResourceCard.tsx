@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { track } from '@/lib/tracker'
 
 interface Resource {
   name: string
@@ -43,17 +44,17 @@ export function ResourceCard({ resource, distanceLabel }: { resource: Resource; 
       {resource.description && <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{resource.description}</p>}
       <div className="flex flex-col gap-2">
         {resource.phone && (
-          <a href={`tel:${resource.phone}`} className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold min-h-[48px]">
+          <a href={`tel:${resource.phone}`} onClick={() => track('resource_call', { resourceName: resource.name })} className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold min-h-[48px]">
             📞 {t('call')} {resource.phone}
           </a>
         )}
         {mapsUrl && (
-          <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 dark:text-blue-400 min-h-[48px]">
+          <a href={mapsUrl} target="_blank" rel="noopener noreferrer" onClick={() => track('resource_directions', { resourceName: resource.name })} className="flex items-center gap-2 text-blue-600 dark:text-blue-400 min-h-[48px]">
             📍 {t('getDirections')}
           </a>
         )}
         {resource.website && (
-          <a href={resource.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 dark:text-blue-400 min-h-[48px]">
+          <a href={resource.website} target="_blank" rel="noopener noreferrer" onClick={() => track('resource_website', { resourceName: resource.name })} className="flex items-center gap-2 text-blue-600 dark:text-blue-400 min-h-[48px]">
             🌐 Website
           </a>
         )}

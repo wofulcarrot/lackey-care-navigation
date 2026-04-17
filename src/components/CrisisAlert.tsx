@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
+import { track } from '@/lib/tracker'
 
 interface CrisisAlertProps {
   onDismiss?: () => void
@@ -15,6 +17,10 @@ interface CrisisAlertProps {
  */
 export function CrisisAlert({ onDismiss }: CrisisAlertProps) {
   const t = useTranslations('crisis')
+
+  useEffect(() => {
+    track('crisis_screen_view')
+  }, [])
 
   return (
     <div
@@ -40,12 +46,14 @@ export function CrisisAlert({ onDismiss }: CrisisAlertProps) {
           <div className="flex flex-col gap-3">
             <a
               href="tel:988"
+              onClick={() => track('crisis_988_tap')}
               className="block w-full bg-white text-indigo-900 text-center py-4 rounded-xl text-xl font-bold min-h-[48px]"
             >
               {t('call988')}
             </a>
             <a
               href="sms:988"
+              onClick={() => track('crisis_988_tap')}
               className="block w-full bg-indigo-700 text-white text-center py-3 rounded-xl text-lg font-bold min-h-[48px]"
             >
               {t('text988')}

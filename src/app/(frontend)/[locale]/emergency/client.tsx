@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { EmergencyAlert } from '@/components/EmergencyAlert'
+import { track } from '@/lib/tracker'
 
 interface Symptom {
   id: string
@@ -17,6 +18,10 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
   const locale = useLocale()
   const router = useRouter()
 
+  useEffect(() => {
+    track('emergency_screen_view')
+  }, [])
+
   function toggle(id: string) {
     const next = new Set(checked)
     if (next.has(id)) next.delete(id)
@@ -26,6 +31,7 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
 
   function handleSubmit() {
     if (checked.size > 0) {
+      track('emergency_symptom')
       // Fire-and-forget analytics log so the CEO dashboard's emergencyCount
       // metric reflects real events (not just seeded data). Never await —
       // the full-screen 911 alert must render immediately.
@@ -62,6 +68,7 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
 
       setShowAlert(true)
     } else {
+      track('emergency_none')
       sessionStorage.setItem('emergencyScreenCompleted', 'true')
       router.push(`/${locale}/care-type`)
     }
