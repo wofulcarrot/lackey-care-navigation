@@ -4,6 +4,8 @@ import config from '@payload-config'
 import { rateLimit } from '@/lib/rate-limit'
 import { recordSessionLogFailure } from '@/lib/observability'
 
+export const maxDuration = 30
+
 /**
  * Log a pre-triage emergency-screen event.
  *

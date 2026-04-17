@@ -78,7 +78,16 @@ export default buildConfig({
     defaultLocale: 'en',
     fallback: true,
   },
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: (() => {
+    const s = process.env.PAYLOAD_SECRET
+    if (!s || s.length < 16) {
+      throw new Error(
+        'PAYLOAD_SECRET must be set and at least 16 characters. ' +
+        'Generate one with: openssl rand -base64 32',
+      )
+    }
+    return s
+  })(),
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

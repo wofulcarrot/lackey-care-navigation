@@ -38,9 +38,7 @@ export interface DashboardData {
   }
 }
 
-function sameDay(d: Date, y: number, m: number, day: number) {
-  return d.getFullYear() === y && d.getMonth() === m && d.getDate() === day
-}
+
 
 /**
  * Fetch and aggregate all dashboard data in a single pass.

@@ -12,7 +12,16 @@ import config from '@payload-config'
 
 async function main() {
   const email = process.argv[2] || 'admin@lackey.local'
-  const password = process.argv[3] || 'admin123'
+  const password = process.argv[3]
+
+  // In production, require an explicit password argument — never use a default
+  if (process.env.NODE_ENV === 'production' && !password) {
+    console.error('[create-admin] ERROR: Password argument is required in production.')
+    console.error('  Usage: npx tsx src/seed/create-admin.ts admin@lackey.org YOUR_STRONG_PASSWORD')
+    process.exit(1)
+  }
+
+  const safePassword = password || 'admin123' // dev-only default
 
   const payload = await getPayload({ config })
 
@@ -28,13 +37,13 @@ async function main() {
     await payload.update({
       collection: 'users',
       id: existing.docs[0].id,
-      data: { password, role: 'admin' },
+      data: { password: safePassword, role: 'admin' },
     })
     console.log(`Updated password for existing admin: ${email}`)
   } else {
     await payload.create({
       collection: 'users',
-      data: { email, password, role: 'admin' },
+      data: { email, password: safePassword, role: 'admin' },
     })
     console.log(`Created new admin: ${email}`)
   }

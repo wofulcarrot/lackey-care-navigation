@@ -129,6 +129,31 @@ async function basicAuth(request: NextRequest): Promise<NextResponse> {
   return unauthorized()
 }
 
+/** Simple per-IP login attempt counter. Limits brute-force on /api/users/login. */
+const loginAttempts = new Map<string, { count: number; firstAttempt: number }>()
+const LOGIN_WINDOW_MS = 15 * 60 * 1000 // 15 min
+const MAX_LOGIN_ATTEMPTS = 10
+
+function checkLoginRateLimit(request: NextRequest): NextResponse | null {
+  const fwd = request.headers.get('x-forwarded-for') || ''
+  const ip = fwd.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown'
+  const now = Date.now()
+  const entry = loginAttempts.get(ip)
+
+  if (entry && now - entry.firstAttempt < LOGIN_WINDOW_MS) {
+    if (entry.count >= MAX_LOGIN_ATTEMPTS) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Try again later.' },
+        { status: 429, headers: { 'Retry-After': '900' } },
+      )
+    }
+    entry.count++
+  } else {
+    loginAttempts.set(ip, { count: 1, firstAttempt: now })
+  }
+  return null // allow
+}
+
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -137,10 +162,16 @@ export default async function middleware(request: NextRequest) {
     return await basicAuth(request)
   }
 
+  // Rate-limit Payload CMS login to prevent brute-force attacks
+  if (pathname === '/api/users/login' && request.method === 'POST') {
+    const blocked = checkLoginRateLimit(request)
+    if (blocked) return blocked
+  }
+
   // Everything else goes through next-intl locale routing
   return intlMiddleware(request)
 }
 
 export const config = {
-  matcher: ['/', '/(en|es)/:path*', '/dashboard/:path*'],
+  matcher: ['/', '/(en|es)/:path*', '/dashboard/:path*', '/api/users/login'],
 }

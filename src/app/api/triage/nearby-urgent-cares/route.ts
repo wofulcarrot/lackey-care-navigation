@@ -17,6 +17,8 @@ import { NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/rate-limit'
 import { searchNearbyUrgentCares } from '@/lib/foursquare'
 
+export const maxDuration = 30
+
 const MAX_RADIUS_MILES = 25
 const DEFAULT_RADIUS_MILES = 10
 const MAX_RESULTS = 15

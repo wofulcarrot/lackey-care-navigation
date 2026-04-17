@@ -10,6 +10,12 @@ import { createRoutingRules } from './routing-rules'
 
 // NOTE: This script is NOT idempotent. Drop/reset the database before re-running.
 async function seed() {
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SEED !== 'true') {
+    console.error('[seed] ERROR: Refusing to run in production. This script is NOT idempotent.')
+    console.error('  Set ALLOW_SEED=true to override (you should drop/reset the DB first).')
+    process.exit(1)
+  }
+
   const payload = await getPayload({ config })
 
   try {

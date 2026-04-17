@@ -3,6 +3,8 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getSessionLogStats } from '@/lib/observability'
 
+export const maxDuration = 30
+
 /**
  * Unauthenticated health endpoint for uptime monitors and the CEO dashboard.
  *

@@ -10,7 +10,10 @@ export const QuestionSets: CollectionConfig = {
     pagination: { defaultLimit: 25 },
   },
   access: {
-    read: () => true,
+    // Locked to auth-only. The triage page fetches question sets server-side
+    // via getPayload() which bypasses access control. Public REST access is
+    // disabled to prevent enumeration of the triage scoring logic.
+    read: ({ req }) => Boolean(req.user),
     create: ({ req }) => req.user?.role === 'admin',
     update: ({ req }) => req.user?.role === 'admin',
     delete: ({ req }) => req.user?.role === 'admin',

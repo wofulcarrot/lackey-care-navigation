@@ -5,11 +5,14 @@ import { calculateScore, classifyUrgency, checkEscalation } from '@/lib/triage-e
 import { rateLimit } from '@/lib/rate-limit'
 import { recordSessionLogFailure } from '@/lib/observability'
 
+// Allow up to 30s for cold-start (Neon wake + Payload init)
+export const maxDuration = 30
+
 export async function POST(request: Request) {
   try {
     const forwarded = request.headers.get('x-forwarded-for')
     const ip = forwarded?.split(',')[0]?.trim() ?? '127.0.0.1'
-    const { allowed, remaining } = rateLimit(ip)
+    const { allowed } = rateLimit(ip)
     if (!allowed) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again in a minute.' },
