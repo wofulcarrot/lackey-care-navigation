@@ -195,16 +195,10 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
             // Clear stored triage data and the emergency-screen flow flag
             // so the next run starts clean from the landing page.
             try {
-<<<<<<< HEAD
-              sessionStorage.removeItem('triageResult')
-              sessionStorage.removeItem('triageInputs')
-              sessionStorage.removeItem('triageUserLocation')
-              sessionStorage.removeItem('emergencyScreenCompleted')
-=======
               sessionStorage.removeItem(SESSION_KEYS.triageResult)
+              sessionStorage.removeItem('triageInputs')
               sessionStorage.removeItem(SESSION_KEYS.userLocation)
               sessionStorage.removeItem(SESSION_KEYS.emergencyScreen)
->>>>>>> ed4f35d (refactor: code simplification + design decisions doc for cofounder review)
             } catch {
               // non-fatal
             }

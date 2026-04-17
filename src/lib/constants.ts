@@ -10,7 +10,7 @@ export const SESSION_KEYS = {
 export const URGENT_LEVEL_NAMES = ['Urgent', 'Urgente'] as const
 
 export function isUrgentLevel(name?: string): boolean {
-  return (URGENT_LEVEL_NAMES as readonly string[]).includes(name ?? '')
+  return URGENT_LEVEL_NAMES.some((n) => n === name)
 }
 
 /** Conversion factor for miles to meters. */

@@ -47,9 +47,13 @@ export function rateLimit(ip: string): { allowed: boolean; remaining: number } {
 
 /** Extract the client IP from the request, preferring Vercel's trusted header. */
 export function getClientIp(request: Request, fallback = '127.0.0.1'): string {
-  // Vercel sets this header; clients cannot spoof it
-  const vercelIp = request.headers.get('x-vercel-forwarded-for')
-  if (vercelIp) return vercelIp.split(',')[0].trim()
+  // x-vercel-forwarded-for is infra-set on Vercel and cannot be spoofed by
+  // clients. In Docker/self-hosted deployments it may be forwarded unchanged,
+  // so only trust it when the VERCEL env var is present (Vercel sets this).
+  if (process.env.VERCEL) {
+    const vercelIp = request.headers.get('x-vercel-forwarded-for')
+    if (vercelIp) return vercelIp.split(',')[0].trim()
+  }
   const forwarded = request.headers.get('x-forwarded-for')
   return forwarded?.split(',')[0]?.trim() || fallback
 }

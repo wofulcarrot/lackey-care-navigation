@@ -86,20 +86,20 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
     virtualCareOffered?: boolean | null
     emergencyScreenTriggered?: boolean | null
     completedFlow?: boolean | null
+    isCrisis?: boolean | null
     locale?: 'en' | 'es' | null
     device?: 'mobile' | 'tablet' | 'desktop' | null
   }>
 
   const totalSessions = docs.length
 
-  // BH crisis helper — checks the isCrisis boolean first (new), falls back
-  // to care type name matching for legacy sessions that lack the flag.
-  const isBhCrisis = (d: typeof docs[0] & { isCrisis?: boolean }) => {
+  // BH crisis helper — checks the isCrisis boolean first, falls back to care
+  // type name matching for legacy sessions that predate the boolean field.
+  const isBhCrisis = (d: (typeof docs)[0]) => {
     if (d.isCrisis === true) return true
     const ct = d.careTypeSelected
     if (!ct || typeof ct !== 'object' || !('name' in ct)) return false
-    const name = (ct as { name?: string }).name ?? ''
-    return name === 'Behavioral Health' || name === 'Salud mental'
+    return ct.name === 'Behavioral Health' || ct.name === 'Salud mental'
   }
 
   // --- Initialize all accumulators before the single pass ---
