@@ -150,8 +150,8 @@ export async function POST(request: Request) {
         overrideAccess: true,
         data: {
           sessionId,
-          careTypeSelected: Number(careTypeId),
-          urgencyResult: Number(urgencyLevel.id),
+          careTypeSelected: Number(careTypeId) || (careTypeId as unknown as number),
+          urgencyResult: Number(urgencyLevel.id) || (urgencyLevel.id as unknown as number),
           resourcesShown: Array.isArray(rule.resources)
             ? rule.resources.map((r: any) => (typeof r === 'object' ? r.id : r))
             : [],

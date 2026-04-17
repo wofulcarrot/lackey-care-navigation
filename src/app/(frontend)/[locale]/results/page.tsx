@@ -15,7 +15,7 @@ export default async function ResultsPage({
     <ResultsClient
       clinicPhone={content.clinicPhone}
       virtualCareUrl={content.virtualCareUrl}
-      virtualCareBullets={content.virtualCareBullets?.map((b: any) => b.text) ?? []}
+      virtualCareBullets={content.virtualCareBullets?.map((b: any) => b.text).filter(Boolean) ?? []}
       eligibilityUrl={content.eligibilityIntakeUrl}
     />
   )
