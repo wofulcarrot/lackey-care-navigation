@@ -40,7 +40,11 @@ const nextConfig: NextConfig = {
         ].join('; ')
       : [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'strict-dynamic'",
+          // strict-dynamic was removed: it ignores 'self' and 'unsafe-inline'
+          // in modern browsers, requiring nonce-based trust that Next.js doesn't
+          // set by default. Without nonces, strict-dynamic blocks ALL scripts.
+          // Future: implement nonce-based CSP via middleware, then re-add.
+          "script-src 'self' 'unsafe-inline'",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: blob: https:",
           "font-src 'self' data:",
