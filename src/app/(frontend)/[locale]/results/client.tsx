@@ -44,17 +44,28 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
       try {
         const storedInputs = sessionStorage.getItem('triageInputs')
         const stored = sessionStorage.getItem(SESSION_KEYS.triageResult)
+        const wentThroughLocationFlow = !!sessionStorage.getItem(SESSION_KEYS.userLocation)
 
         if (storedInputs) {
           const inputs = JSON.parse(storedInputs)
+          const previousResult = stored ? (JSON.parse(stored) as TriageResult) : null
           const res = await fetch('/api/triage/evaluate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...inputs, locale }),
           })
           if (res.ok) {
-            const freshData = await res.json()
-            setData(freshData as TriageResult)
+            const freshData = (await res.json()) as TriageResult
+            // When the user went through the location flow, the location
+            // screen replaced seeded resources with Foursquare results and
+            // set virtualCareEligible=false. The re-evaluation here is only
+            // for locale text refresh — preserve the location enrichment so
+            // the patient sees the nearby urgent cares they searched for.
+            if (wentThroughLocationFlow && previousResult) {
+              freshData.resources = previousResult.resources
+              freshData.virtualCareEligible = previousResult.virtualCareEligible
+            }
+            setData(freshData)
             sessionStorage.setItem(SESSION_KEYS.triageResult, JSON.stringify(freshData))
           } else if (stored) {
             setData(JSON.parse(stored) as TriageResult)

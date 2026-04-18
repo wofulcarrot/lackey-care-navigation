@@ -11,12 +11,19 @@ async function main() {
   const payload = await getPayload({ config })
   console.log('Schema pushed successfully.')
 
-  // Verify new collections are accessible
-  try {
-    const result = await (payload.find as any)({ collection: 'triage-events', limit: 1 })
-    console.log('triage-events collection: OK (' + result.totalDocs + ' docs)')
-  } catch (err: any) {
-    console.error('triage-events collection: FAILED -', err.message)
+  // Verify collections and new fields are accessible
+  const checks: [string, string][] = [
+    ['triage-events', 'event'],
+    ['care-types', 'isBehavioralHealth'],
+    ['triage-sessions', 'isCrisis'],
+  ]
+  for (const [collection, field] of checks) {
+    try {
+      const result = await (payload.find as any)({ collection, limit: 1 })
+      console.log(`${collection}: OK (${result.totalDocs} docs, ${field} field accessible)`)
+    } catch (err: any) {
+      console.error(`${collection}: FAILED -`, err.message)
+    }
   }
 
   process.exit(0)
