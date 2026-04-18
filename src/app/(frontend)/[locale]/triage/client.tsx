@@ -57,8 +57,17 @@ export function TriageClient({
         questionSetVersion,
       }),
     })
-      .then((r) => r.json())
-      .then((data) => {
+      .then(async (r) => {
+        const data = await r.json().catch(() => null)
+        // The API returns fallback:true when no routing rule matches the
+        // score (e.g., low-urgency paths that don't have a mapped rule) or
+        // when urgency classification fails. Route those to the dedicated
+        // fallback results screen so patients see Lackey's phone + virtual
+        // care options instead of an empty results page.
+        if (!r.ok || !data || data.fallback) {
+          router.push(`/${locale}/results?fallback=true`)
+          return
+        }
         sessionStorage.setItem('triageResult', JSON.stringify(data))
         // When urgency is Urgent, route through the location screen so we
         // can swap in real nearby urgent cares via Foursquare. All other

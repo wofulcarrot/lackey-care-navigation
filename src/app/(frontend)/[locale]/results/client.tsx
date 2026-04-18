@@ -112,7 +112,7 @@ export function ResultsClient({ clinicPhone, virtualCareUrl, virtualCareBullets,
     )
   }
 
-  if (isFallback || !data) {
+  if (isFallback || !data || data.fallback) {
     return <ErrorFallback clinicPhone={clinicPhone} virtualCareUrl={virtualCareUrl} />
   }
 
