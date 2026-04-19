@@ -6,17 +6,112 @@
  * selector so we can toggle dark mode programmatically from a button. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Smooth color transition when the toggle flips the theme. */
+/* ─────────────────────────────────────────────────────────────────────────
+ * Design tokens — warm nonprofit palette (from the Claude design refresh).
+ *
+ * Colors use oklch() for perceptually uniform contrast across hues. All
+ * components reference var(--ink), var(--surface-1), etc. — never hex/RGB —
+ * so theme and contrast adjustments cascade everywhere.
+ *
+ * Naming:
+ *   --page-bg / --surface-0..3  layered backgrounds (page → phone → card → fill)
+ *   --ink / --ink-2 / --ink-3   text: primary / secondary / tertiary
+ *   --stroke                    default hairline border
+ *   --frame                     darker chrome (nav, modal frames)
+ *   --accent-primary / -soft    coral, the brand CTA
+ *   --accent-sage / -soft / -ink sage green, for "free/safe" moments
+ *   --urgent-red / -orange / -yellow / -green / -blue / -lavender
+ *                               traffic-light urgency tiers + soft/ink variants
+ *   --crisis-bg                 deep purple for the 988 takeover
+ * ───────────────────────────────────────────────────────────────────────── */
+
 :root {
   color-scheme: light;
-}
-:root.dark {
-  color-scheme: dark;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body:    var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  --page-bg:   oklch(0.955 0.018 70);
+  --surface-0: oklch(0.995 0.005 75);
+  --surface-1: oklch(0.985 0.008 75);
+  --surface-2: oklch(0.955 0.012 72);
+  --surface-3: oklch(0.92 0.015 70);
+  --frame:     oklch(0.28 0.02 40);
+
+  --ink:   oklch(0.22 0.025 35);
+  --ink-2: oklch(0.42 0.018 40);
+  --ink-3: oklch(0.58 0.015 42);
+  --stroke: oklch(0.90 0.012 70);
+
+  --accent-primary:      oklch(0.68 0.155 35);
+  --accent-primary-soft: oklch(0.95 0.04 40);
+
+  --accent-sage:      oklch(0.55 0.08 155);
+  --accent-sage-soft: oklch(0.94 0.035 155);
+  --accent-sage-ink:  oklch(0.35 0.08 155);
+
+  --urgent-red:         oklch(0.58 0.195 27);
+  --urgent-red-soft:    oklch(0.94 0.04 25);
+  --urgent-orange:      oklch(0.70 0.17 55);
+  --urgent-yellow:      oklch(0.78 0.14 90);
+  --urgent-yellow-soft: oklch(0.95 0.055 90);
+  --urgent-yellow-ink:  oklch(0.38 0.08 75);
+  --urgent-green:       oklch(0.66 0.14 150);
+  --urgent-blue:        oklch(0.62 0.12 240);
+  --urgent-lavender:    oklch(0.70 0.09 295);
+
+  --crisis-bg: oklch(0.24 0.06 295);
 }
 
+.dark {
+  color-scheme: dark;
+
+  --page-bg:   oklch(0.18 0.015 40);
+  --surface-0: oklch(0.22 0.015 40);
+  --surface-1: oklch(0.26 0.017 42);
+  --surface-2: oklch(0.30 0.017 42);
+  --surface-3: oklch(0.35 0.017 42);
+  --frame:     oklch(0.12 0.01 40);
+
+  --ink:   oklch(0.96 0.01 70);
+  --ink-2: oklch(0.78 0.012 65);
+  --ink-3: oklch(0.60 0.012 60);
+  --stroke: oklch(0.35 0.015 45);
+
+  --accent-primary:      oklch(0.76 0.15 38);
+  --accent-primary-soft: oklch(0.32 0.06 38);
+
+  --accent-sage:      oklch(0.72 0.11 155);
+  --accent-sage-soft: oklch(0.30 0.05 155);
+  --accent-sage-ink:  oklch(0.88 0.08 155);
+
+  --urgent-red:         oklch(0.66 0.20 27);
+  --urgent-red-soft:    oklch(0.32 0.09 27);
+  --urgent-yellow-soft: oklch(0.32 0.07 90);
+  --urgent-yellow-ink:  oklch(0.90 0.1 90);
+  --crisis-bg:          oklch(0.18 0.05 295);
+}
+
+/* Smooth color transition when the toggle flips the theme. */
 html {
+  background: var(--page-bg);
   transition: background-color 0.15s ease;
 }
 body {
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
   transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Display font for big headings. */
+h1, h2, h3 {
+  letter-spacing: -0.01em;
+}
+
+/* Utility: `.font-display` picks up the serif on any element. */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }

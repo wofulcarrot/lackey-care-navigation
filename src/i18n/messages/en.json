@@ -1,25 +1,43 @@
 {
   "landing": {
-    "hero": "Get the right care, right now",
-    "subtitle": "Free help finding the care you need — no insurance required",
-    "getCareNow": "Get Care Now",
+    "hero": "What kind of care do you need today?",
+    "subtitle": "Answer a few quick questions. We'll help you find the right place to go.",
+    "heroKicker": "Free help. No insurance needed.",
+    "getCareNow": "Start",
+    "getCareNowSub": "Takes about 1 minute",
     "virtualCare": "Start a Free Virtual Visit (24/7)",
-    "call911": "Call 911"
+    "call911": "Call 911",
+    "trustPrivate": "Private",
+    "trustPrivateBody": "We don't save your name or anything personal.",
+    "trustFree": "Free",
+    "trustFreeBody": "Our Virtual Care line is free, day or night.",
+    "trustSpanish": "In Spanish",
+    "trustSpanishBody": "Tap \"ES\" above to switch the language.",
+    "crisis": "Need to talk to someone right now?",
+    "crisisCta": "Get crisis help"
   },
   "emergency": {
-    "title": "Are you experiencing any of these right now?",
-    "noneOfThese": "None of these — continue",
+    "kicker": "Quick safety check",
+    "title": "Are you feeling any of these right now?",
+    "body": "If you pick any of these, we'll help you call 911.",
+    "noneOfThese": "I don't have any of these",
     "alert": "Call 911 Now",
-    "alertBody": "Based on your symptoms, please call 911 or go to your nearest emergency room immediately."
+    "alertHeading": "Please call 911 now.",
+    "alertBody": "What you described can be life-threatening. Don't wait — help is a tap away.",
+    "alertCall": "Call 911",
+    "alertText": "Or text 911 if you cannot call",
+    "alertBack": "Go back"
   },
   "careType": {
     "title": "What kind of help do you need?",
+    "subtitle": "Pick the one closest to your problem. If you are not sure, tap \"I'm not sure\".",
     "notSure": "I'm not sure — help me decide"
   },
   "triage": {
     "helpText": "What does this mean?",
     "back": "Back",
-    "next": "Next"
+    "next": "Next",
+    "progress": "Question {current} of {total}"
   },
   "virtualCareInterstitial": {
     "heading": "You may be able to get free care right now",

@@ -6,25 +6,53 @@ interface EmergencyAlertProps {
   onDismiss?: () => void
 }
 
+/**
+ * Full-screen 911 takeover shown when a patient reports a life-threatening
+ * symptom. Primary CTA is a tel: link to 911; sms: fallback for users who
+ * can't speak (hearing-impaired or unsafe to call). Secondary "Go back"
+ * only shown during the pre-triage safety check, not after escalation.
+ */
 export function EmergencyAlert({ onDismiss }: EmergencyAlertProps) {
   const t = useTranslations('emergency')
+
   return (
-    <div className="fixed inset-0 bg-red-600 flex flex-col items-center justify-center px-6 text-white text-center z-50" role="alertdialog" aria-labelledby="emergency-heading" aria-describedby="emergency-body">
-      <div className="text-6xl mb-6" aria-hidden="true">🚨</div>
-      <h1 id="emergency-heading" className="text-3xl font-bold mb-4">{t('alert')}</h1>
-      <p id="emergency-body" className="text-xl mb-8">{t('alertBody')}</p>
+    <div
+      className="fixed inset-0 bg-[var(--urgent-red)] flex flex-col items-center justify-center px-6 text-white text-center z-50"
+      role="alertdialog"
+      aria-labelledby="emergency-heading"
+      aria-describedby="emergency-body"
+    >
+      <div className="text-6xl mb-5" aria-hidden="true">🚨</div>
+      <h1
+        id="emergency-heading"
+        className="font-display text-[28px] font-semibold mb-3 leading-tight"
+      >
+        {t('alertHeading')}
+      </h1>
+      <p id="emergency-body" className="text-[16px] mb-7 max-w-[300px] leading-snug">
+        {t('alertBody')}
+      </p>
+
       <a
         href="tel:911"
-        className="block w-full max-w-sm bg-white text-red-600 text-center py-4 rounded-xl text-2xl font-bold min-h-[48px]"
+        className="block w-full max-w-[320px] bg-white text-[var(--urgent-red)] text-center py-5 rounded-2xl text-[22px] font-bold mb-3 min-h-[60px] shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
       >
-        {t('alert')}
+        📞 {t('alertCall')}
       </a>
+
+      <a
+        href="sms:911"
+        className="text-white/90 underline underline-offset-2 text-[14px] mb-4"
+      >
+        {t('alertText')}
+      </a>
+
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="mt-4 text-white underline text-lg min-h-[48px]"
+          className="text-white/90 underline underline-offset-2 text-[15px] py-2 min-h-[44px]"
         >
-          {t('noneOfThese')}
+          {t('alertBack')}
         </button>
       )}
     </div>
