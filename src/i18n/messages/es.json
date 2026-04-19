@@ -1,25 +1,43 @@
 {
   "landing": {
-    "hero": "Obtenga la atención adecuada ahora",
-    "subtitle": "Ayuda gratuita para encontrar la atención que necesita — no se requiere seguro",
-    "getCareNow": "Obtener atención ahora",
+    "hero": "¿Qué tipo de atención necesita hoy?",
+    "subtitle": "Responda unas preguntas rápidas. Le ayudaremos a encontrar el lugar adecuado.",
+    "heroKicker": "Ayuda gratuita. No se necesita seguro.",
+    "getCareNow": "Empezar",
+    "getCareNowSub": "Toma alrededor de 1 minuto",
     "virtualCare": "Iniciar una visita virtual gratuita (24/7)",
-    "call911": "Llamar al 911"
+    "call911": "Llamar al 911",
+    "trustPrivate": "Privado",
+    "trustPrivateBody": "No guardamos su nombre ni nada personal.",
+    "trustFree": "Gratis",
+    "trustFreeBody": "Nuestra línea de atención virtual es gratuita, de día o de noche.",
+    "trustSpanish": "In English",
+    "trustSpanishBody": "Tap \"EN\" above to switch to English.",
+    "crisis": "¿Necesita hablar con alguien ahora mismo?",
+    "crisisCta": "Obtener ayuda de crisis"
   },
   "emergency": {
-    "title": "¿Está experimentando alguno de estos síntomas ahora?",
-    "noneOfThese": "Ninguno de estos — continuar",
+    "kicker": "Revisión rápida de seguridad",
+    "title": "¿Tiene alguno de estos síntomas ahora?",
+    "body": "Si elige alguno de estos, le ayudaremos a llamar al 911.",
+    "noneOfThese": "No tengo ninguno de estos",
     "alert": "Llame al 911 ahora",
-    "alertBody": "Según sus síntomas, llame al 911 o vaya a la sala de emergencias más cercana de inmediato."
+    "alertHeading": "Llame al 911 ahora.",
+    "alertBody": "Lo que describió puede ser potencialmente mortal. No espere — la ayuda está a un toque.",
+    "alertCall": "Llamar al 911",
+    "alertText": "O envíe un mensaje al 911 si no puede llamar",
+    "alertBack": "Volver"
   },
   "careType": {
     "title": "¿Qué tipo de ayuda necesita?",
+    "subtitle": "Elija la opción más cercana a su problema. Si no está seguro, toque \"No estoy seguro\".",
     "notSure": "No estoy seguro — ayúdeme a decidir"
   },
   "triage": {
     "helpText": "¿Qué significa esto?",
     "back": "Atrás",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "progress": "Pregunta {current} de {total}"
   },
   "virtualCareInterstitial": {
     "heading": "Es posible que pueda recibir atención gratuita ahora mismo",

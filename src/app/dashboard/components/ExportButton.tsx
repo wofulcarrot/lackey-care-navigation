@@ -188,7 +188,7 @@ export function ExportButton({ data }: { data: ExportData }) {
       type="button"
       onClick={handleExport}
       disabled={busy}
-      className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-60 print:hidden"
+      className="inline-flex items-center gap-2 rounded-lg border border-[var(--stroke)] bg-[var(--surface-0)] px-3 py-2 text-sm font-semibold text-[var(--ink-2)] shadow-[var(--shadow-card)] hover:bg-[var(--surface-1)] hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] transition disabled:opacity-60 print:hidden"
       aria-label="Export dashboard data as CSV"
     >
       <span aria-hidden="true">⬇</span>

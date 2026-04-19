@@ -10,6 +10,24 @@ export interface DashboardDateRange {
   end: Date
 }
 
+/**
+ * KPI tile metric. `delta` is the percent (or percentage-point) change
+ * versus the immediately preceding period of equal length. The `tone`
+ * flag lets the UI invert the "up is good" convention for bad-news
+ * counters like crisis escalations, where a DROP is good.
+ */
+export interface DashboardKpi {
+  id: 'sessions' | 'completion' | 'crisis' | 'virtual' | 'spanish'
+  label: string
+  value: number
+  /** Absolute change in value (or pp for %-valued KPIs). Sign indicates direction. */
+  delta: number
+  /** Display unit: '' for counts, '%' for percentages, 'm' for minutes. */
+  unit: '' | '%'
+  /** 'urgent' inverts up=good so red-flag counters read correctly. */
+  tone?: 'urgent'
+}
+
 export interface DashboardData {
   dateRange: DashboardDateRange
   days: number
@@ -24,7 +42,7 @@ export interface DashboardData {
   abandonedCount: number
   routingMix: { name: string; count: number; color: string }[]
   careTypeBreakdown: { name: string; count: number }[]
-  urgencyBreakdown: { name: string; count: number }[]
+  urgencyBreakdown: { name: string; count: number; color: string; percent: number }[]
   languageBreakdown: { locale: string; label: string; count: number; percent: number }[]
   deviceBreakdown: { device: string; label: string; count: number; percent: number }[]
   dailyTrend: { date: string; total: number; virtual: number; inPerson: number; emergency: number; crisis: number }[]
@@ -40,6 +58,30 @@ export interface DashboardData {
   funnel: { name: string; count: number; color: string }[]
   /** Resource engagement: calls, directions, website clicks per provider */
   resourceEngagement: { name: string; calls: number; directions: number; website: number; total: number }[]
+  /** KPI tiles with deltas vs the previous period of equal length. */
+  kpis: DashboardKpi[]
+}
+
+/**
+ * Urgency-tier color palette for the donut + funnel. Matches the
+ * --urgent-life/emg/urg/semi/rout/elec CSS tokens as sRGB hex.
+ * Name-matching is case-insensitive and supports EN + ES labels.
+ */
+const URGENCY_ORDER: Array<{ keys: string[]; color: string; fallbackLabel: string }> = [
+  { keys: ['life-threatening', 'life threatening', 'amenaza'], color: '#D64545', fallbackLabel: 'Life-Threatening' },
+  { keys: ['emergent', 'emergente'],                            color: '#E89049', fallbackLabel: 'Emergent' },
+  { keys: ['urgent', 'urgente'],                                color: '#E6A547', fallbackLabel: 'Urgent' },
+  { keys: ['semi-urgent', 'semi urgente', 'semi-urgente'],      color: '#E3B84A', fallbackLabel: 'Semi-Urgent' },
+  { keys: ['routine', 'rutina'],                                color: '#6FAA82', fallbackLabel: 'Routine' },
+  { keys: ['elective', 'electiva', 'behavioral health', 'salud mental'], color: '#8DA8D8', fallbackLabel: 'Elective' },
+]
+
+function urgencyColorFor(name: string): string {
+  const norm = name.toLowerCase()
+  for (const tier of URGENCY_ORDER) {
+    if (tier.keys.some((k) => norm === k || norm.startsWith(k))) return tier.color
+  }
+  return '#9A8976' // ink-3 fallback
 }
 
 
@@ -217,25 +259,117 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
     }
   }
 
+  // --- Fetch previous period (same duration, ending at range.start) so the
+  //     KPI tiles can show "vs last week"-style deltas. This is a second
+  //     DB query but returns only the few counts we need, not the full
+  //     session objects, so it's cheap.
+  const periodMs = range.end.getTime() - range.start.getTime()
+  const prevStart = new Date(range.start.getTime() - periodMs)
+  const prevEnd = new Date(range.start.getTime())
+
+  // Same filter shape as the main query, but we only need the booleans/
+  // locale to recompute the same KPIs — depth: 0 skips relationship
+  // hydration for a much smaller payload.
+  const prevRes = await payload.find({
+    collection: 'triage-sessions',
+    where: {
+      and: [
+        { createdAt: { greater_than_equal: prevStart.toISOString() } },
+        { createdAt: { less_than_equal: prevEnd.toISOString() } },
+        { sessionId: { not_like: 'sample-%' } },
+      ],
+    },
+    depth: 0,
+    limit: 50000,
+    pagination: false,
+    overrideAccess: true,
+  })
+
+  const prevDocs = prevRes.docs as Array<{
+    virtualCareOffered?: boolean | null
+    emergencyScreenTriggered?: boolean | null
+    completedFlow?: boolean | null
+    isCrisis?: boolean | null
+    locale?: 'en' | 'es' | null
+  }>
+  let prevTotal = prevDocs.length
+  let prevCompleted = 0
+  let prevCrisis = 0
+  let prevVirtual = 0
+  let prevSpanish = 0
+  for (const d of prevDocs) {
+    if (d.completedFlow && !d.emergencyScreenTriggered) prevCompleted++
+    if (d.isCrisis === true) prevCrisis++
+    if (d.completedFlow && d.virtualCareOffered && !d.emergencyScreenTriggered) prevVirtual++
+    if (d.locale === 'es') prevSpanish++
+  }
+  const prevCompletedRate = prevTotal > 0 ? Math.round((prevCompleted / prevTotal) * 100) : 0
+  const prevSpanishPct = prevTotal > 0 ? Math.round((prevSpanish / prevTotal) * 100) : 0
+
+  // Helper: percent change for a count (rounded to 1 decimal).
+  // Returns 0 when prev was 0 to avoid division-by-zero and hide noisy
+  // infinity spikes for first-run demos.
+  function pctDelta(curr: number, prev: number): number {
+    if (prev === 0) return 0
+    return Math.round(((curr - prev) / prev) * 1000) / 10
+  }
+
   // --- Derive final aggregates from the accumulators ---
 
   const abandonedCount = Math.max(0, totalSessions - completedCount - allEmergencyCount)
   const completedRate = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0
+  const spanishPct = totalSessions > 0 ? Math.round((langCounts.es / totalSessions) * 100) : 0
 
+  // KPI tiles — values + deltas vs the immediately preceding period.
+  // For rate/percent KPIs (completion, Spanish share) delta is a
+  // percentage-point difference; for count KPIs it's a percent change.
+  const kpis: DashboardKpi[] = [
+    { id: 'sessions',   label: 'Total sessions',      value: totalSessions,  delta: pctDelta(totalSessions, prevTotal),       unit: ''  },
+    { id: 'completion', label: 'Completion rate',     value: completedRate,  delta: completedRate - prevCompletedRate,        unit: '%' },
+    { id: 'crisis',     label: 'Crisis escalations',  value: crisisCount,    delta: pctDelta(crisisCount, prevCrisis),         unit: '', tone: 'urgent' },
+    { id: 'virtual',    label: 'Virtual care starts', value: virtualCount,   delta: pctDelta(virtualCount, prevVirtual),       unit: ''  },
+    { id: 'spanish',    label: 'Spanish sessions',    value: spanishPct,     delta: spanishPct - prevSpanishPct,               unit: '%' },
+  ]
+
+  // Colors here mirror CHART_COLORS in
+  // src/app/dashboard/components/chart-theme.ts. Kept in sync manually
+  // since this is a server module that can't import a 'use client' file.
   const routingMix = [
-    { name: 'Virtual care', count: virtualCount, color: '#10b981' },
-    { name: 'In-person', count: inPersonCount, color: '#3b82f6' },
-    { name: 'Emergency (911)', count: emergencyCount, color: '#ef4444' },
-    { name: 'Crisis (988)', count: crisisCount, color: '#8b5cf6' },
+    { name: 'Virtual care', count: virtualCount, color: '#6A9373' },       // sage
+    { name: 'In-person', count: inPersonCount, color: '#5A8ED8' },         // urgent-blue
+    { name: 'Emergency (911)', count: emergencyCount, color: '#D64545' },  // urgent-red
+    { name: 'Crisis (988)', count: crisisCount, color: '#AE9CC4' },        // lavender
   ].filter((r) => r.count > 0)
 
   const careTypeBreakdown = [...careTypeCounts.entries()]
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)
 
+  // Urgency tiers — attach a color from the fixed 6-tier palette and a
+  // share-of-total percent so the donut chart can render without extra
+  // math in the view. Sort by scoreThreshold order (most severe first)
+  // rather than alphabetically so the legend reads top-to-bottom by risk.
+  const urgencyTotal = [...urgencyCounts.values()].reduce((s, n) => s + n, 0)
   const urgencyBreakdown = [...urgencyCounts.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
+    .map(([name, count]) => ({
+      name,
+      count,
+      color: urgencyColorFor(name),
+      percent: urgencyTotal > 0 ? Math.round((count / urgencyTotal) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => {
+      const aIdx = URGENCY_ORDER.findIndex((t) =>
+        t.keys.some((k) => a.name.toLowerCase().startsWith(k)),
+      )
+      const bIdx = URGENCY_ORDER.findIndex((t) =>
+        t.keys.some((k) => b.name.toLowerCase().startsWith(k)),
+      )
+      // Unknown names sort after known ones.
+      if (aIdx === -1 && bIdx === -1) return b.count - a.count
+      if (aIdx === -1) return 1
+      if (bIdx === -1) return -1
+      return aIdx - bIdx
+    })
 
   const languageBreakdown = [
     { locale: 'en', label: 'English', count: langCounts.en, percent: totalSessions ? Math.round((langCounts.en / totalSessions) * 100) : 0 },
@@ -293,15 +427,17 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
       }
     }
 
+    // Funnel colors — coral/sage family graduated from the top of the
+    // funnel (darkest coral) to the engagement steps (sage green).
     const funnelSteps = [
-      { event: 'emergency_screen_view', label: 'Emergency screen', color: '#1B4F72' },
-      { event: 'emergency_none', label: 'Passed emergency', color: '#2471A3' },
-      { event: 'care_type_selected', label: 'Care type selected', color: '#2E86C1' },
-      { event: 'triage_question', label: 'Questions answered', color: '#3498DB' },
-      { event: 'triage_completed', label: 'Triage completed', color: '#5DADE2' },
-      { event: 'results_view', label: 'Results viewed', color: '#85C1E9' },
-      { event: 'resource_call', label: 'Phone tapped', color: '#10b981' },
-      { event: 'resource_directions', label: 'Directions tapped', color: '#3b82f6' },
+      { event: 'emergency_screen_view', label: 'Emergency screen', color: '#6B3224' },
+      { event: 'emergency_none', label: 'Passed emergency', color: '#9A4A35' },
+      { event: 'care_type_selected', label: 'Care type selected', color: '#C16049' },
+      { event: 'triage_question', label: 'Questions answered', color: '#E07A5F' },
+      { event: 'triage_completed', label: 'Triage completed', color: '#E89A86' },
+      { event: 'results_view', label: 'Results viewed', color: '#F2BFB0' },
+      { event: 'resource_call', label: 'Phone tapped', color: '#6A9373' },
+      { event: 'resource_directions', label: 'Directions tapped', color: '#5A8ED8' },
     ]
     funnel = funnelSteps.map((s) => ({
       name: s.label,
@@ -343,6 +479,7 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
     },
     funnel,
     resourceEngagement,
+    kpis,
   }
 }
 

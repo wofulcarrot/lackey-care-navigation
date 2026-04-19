@@ -31,7 +31,7 @@ export function TriageClient({
   const triage = useTriage(questions)
   const hasSubmittedRef = useRef(false)
 
-  // Handle meta-redirect
+  // Handle meta-redirect (e.g. "Not Sure" → medical)
   useEffect(() => {
     if (triage.redirectCareType) {
       router.replace(`/${locale}/triage?careType=${triage.redirectCareType}`)
@@ -63,16 +63,10 @@ export function TriageClient({
       .then((r) => r.json())
       .then((data) => {
         sessionStorage.setItem(SESSION_KEYS.triageResult, JSON.stringify(data))
-        // Store the inputs so results page can re-evaluate on locale change
         sessionStorage.setItem('triageInputs', JSON.stringify({ careTypeId, answers, questionSetVersion }))
         track('triage_completed', { careType: careTypeId, urgencyLevel: data?.urgencyLevel?.name })
-        // When urgency is Urgent, route through the location screen so we
-        // can swap in real nearby urgent cares via Foursquare. All other
-        // urgency levels proceed directly to results as before. We match
-        // on the urgency level name rather than a hardcoded scoreThreshold
-        // so admins can tune thresholds in the CMS without breaking this
-        // flow. The evaluate API returns the localized name, so we check
-        // both English ("Urgent") and Spanish ("Urgente").
+        // Route Urgent tier through the location screen so we can swap in
+        // real nearby urgent cares via Foursquare.
         const urgencyName = data?.urgencyLevel?.name
         if (isUrgentLevel(urgencyName) && !data?.escalate) {
           router.push(`/${locale}/location`)
@@ -86,7 +80,10 @@ export function TriageClient({
   }, [triage.completed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAnswer(answers: any[]) {
-    track('triage_question', { questionIndex: triage.questionNumber, totalQuestions: triage.totalQuestions })
+    track('triage_question', {
+      questionIndex: triage.questionNumber,
+      totalQuestions: triage.totalQuestions,
+    })
     triage.submitAnswer(answers)
   }
 
@@ -101,9 +98,6 @@ export function TriageClient({
   }, [triage.escalated, isBehavioralHealth, careTypeId, locale])
 
   // Early returns AFTER all hooks (React rules of hooks)
-  // Behavioral Health escalation shows the dedicated suicide prevention
-  // screen (988 Lifeline + Crisis Text Line + CSB) instead of the generic
-  // 911 EmergencyAlert. All other care types keep the 911 path.
   if (triage.escalated) {
     if (isBehavioralHealth) return <CrisisAlert />
     return <EmergencyAlert />
@@ -111,21 +105,30 @@ export function TriageClient({
   if (!triage.currentQuestion) return null
 
   return (
-    <div>
-      <div className="px-4 pt-4">
+    <div className="px-5 py-5 max-w-[440px] mx-auto">
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[13px] font-semibold text-[var(--accent-primary)] uppercase tracking-wide">
+            {t('progress', {
+              current: triage.questionNumber,
+              total: triage.totalQuestions,
+            })}
+          </span>
+          {triage.canGoBack && (
+            <button
+              onClick={triage.goBack}
+              className="text-[13px] text-[var(--ink-2)] font-medium hover:text-[var(--ink)] min-h-[32px]"
+            >
+              ← {t('back')}
+            </button>
+          )}
+        </div>
         <ProgressBar
           current={triage.questionNumber}
           total={triage.totalQuestions}
         />
       </div>
-      {triage.canGoBack && (
-        <button
-          onClick={triage.goBack}
-          className="px-4 pt-3 text-blue-600 font-medium min-h-[48px]"
-        >
-          &larr; {t('back')}
-        </button>
-      )}
+
       <QuestionCard
         key={triage.currentQuestion.id}
         text={triage.currentQuestion.text}

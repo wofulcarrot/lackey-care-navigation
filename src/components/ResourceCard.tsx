@@ -4,7 +4,26 @@ import { useTranslations } from 'next-intl'
 import { track } from '@/lib/tracker'
 import type { TriageResource } from '@/lib/types'
 
-export function ResourceCard({ resource, distanceLabel }: { resource: TriageResource; distanceLabel?: string }) {
+interface Props {
+  resource: TriageResource
+  distanceLabel?: string
+}
+
+/**
+ * Individual resource card — provider name, distance chip, description,
+ * cost tag (free / sliding / insurance), 24/7 tag, address, call button,
+ * directions button, website button, and eligibility footnote.
+ *
+ * Design choices:
+ *  - Distance chip in the top-right uses the coral accent so it pops.
+ *  - Cost chip is color-coded: green for free, yellow for sliding scale,
+ *    muted for insurance-required. This gives patients an instant
+ *    affordability scan without reading the eligibility footnote.
+ *  - Primary CTA is the phone number as a colored pill; directions is a
+ *    muted secondary button. This emphasizes that patients should CALL
+ *    AHEAD before driving to urgent care.
+ */
+export function ResourceCard({ resource, distanceLabel }: Props) {
   const t = useTranslations('results')
   const addr = resource.address
   const parts = addr
@@ -15,50 +34,106 @@ export function ResourceCard({ resource, distanceLabel }: { resource: TriageReso
     ? `https://maps.google.com/?q=${encodeURIComponent(addressStr)}`
     : null
 
+  const costTone =
+    resource.cost === 'free'
+      ? 'bg-[var(--accent-sage-soft)] text-[var(--accent-sage-ink)]'
+      : resource.cost === 'sliding_scale'
+      ? 'bg-[var(--urgent-yellow-soft)] text-[var(--urgent-yellow-ink)]'
+      : 'bg-[var(--surface-2)] text-[var(--ink-2)]'
+
+  const costLabel =
+    resource.cost === 'free'
+      ? 'Free'
+      : resource.cost === 'sliding_scale'
+      ? 'Sliding Scale'
+      : resource.cost
+      ? 'Insurance'
+      : null
+
   return (
-    <div className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-900">
+    <div className="rounded-2xl border-2 border-[var(--stroke)] bg-[var(--surface-1)] p-4">
       {resource.temporaryNotice && (
-        <div className="bg-yellow-50 dark:bg-yellow-950/40 border border-yellow-300 dark:border-yellow-700 rounded-lg p-2 mb-3 text-sm font-medium text-yellow-800 dark:text-yellow-200">
+        <div className="bg-[var(--urgent-yellow-soft)] border border-[var(--urgent-yellow)]/30 rounded-lg p-2 mb-3 text-sm font-medium text-[var(--urgent-yellow-ink)]">
           ⚠ {resource.temporaryNotice}
         </div>
       )}
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{resource.name}</h3>
+
+      <div className="flex items-start justify-between gap-3 mb-1">
+        <h3 className="font-display font-semibold text-[16px] text-[var(--ink)] leading-tight">
+          {resource.name}
+        </h3>
         {distanceLabel && (
-          <span className="text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 px-2 py-1 rounded whitespace-nowrap">
+          <span className="shrink-0 text-[12px] font-semibold text-[var(--accent-primary)] bg-[var(--accent-primary-soft)] px-2 py-0.5 rounded-full whitespace-nowrap">
             {distanceLabel}
           </span>
         )}
       </div>
-      {resource.description && <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{resource.description}</p>}
-      <div className="flex flex-col gap-2">
+
+      {resource.description && (
+        <p className="text-[13px] text-[var(--ink-2)] mb-3 leading-snug">
+          {resource.description}
+        </p>
+      )}
+
+      {(costLabel || resource.is24_7) && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {costLabel && (
+            <span className={`text-[11px] font-semibold px-2 py-1 rounded-full ${costTone}`}>
+              {costLabel}
+            </span>
+          )}
+          {resource.is24_7 && (
+            <span className="text-[11px] font-semibold px-2 py-1 rounded-full bg-[var(--accent-sage-soft)] text-[var(--accent-sage-ink)]">
+              Open 24/7
+            </span>
+          )}
+        </div>
+      )}
+
+      {addressStr && (
+        <p className="text-[12px] text-[var(--ink-3)] mb-3">{addressStr}</p>
+      )}
+
+      <div className="flex gap-2">
         {resource.phone && (
-          <a href={`tel:${resource.phone}`} onClick={() => track('resource_call', { resourceName: resource.name })} className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold min-h-[48px]">
-            📞 {t('call')} {resource.phone}
+          <a
+            href={`tel:${resource.phone.replace(/\D/g, '')}`}
+            onClick={() => track('resource_call', { resourceName: resource.name })}
+            className="flex-1 flex items-center justify-center gap-2 bg-[var(--accent-primary)] text-white rounded-xl py-3 font-semibold text-[13px] min-h-[44px]"
+          >
+            📞 {t('call')}
           </a>
         )}
         {mapsUrl && (
-          <a href={mapsUrl} target="_blank" rel="noopener noreferrer" onClick={() => track('resource_directions', { resourceName: resource.name })} className="flex items-center gap-2 text-blue-600 dark:text-blue-400 min-h-[48px]">
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track('resource_directions', { resourceName: resource.name })}
+            className="flex-1 flex items-center justify-center gap-2 bg-[var(--surface-2)] text-[var(--ink)] rounded-xl py-3 font-semibold text-[13px] min-h-[44px]"
+          >
             📍 {t('getDirections')}
           </a>
         )}
-        {resource.website && (
-          <a href={resource.website} target="_blank" rel="noopener noreferrer" onClick={() => track('resource_website', { resourceName: resource.name })} className="flex items-center gap-2 text-blue-600 dark:text-blue-400 min-h-[48px]">
-            🌐 Website
-          </a>
-        )}
-        {resource.is24_7 && <span className="text-green-700 dark:text-green-400 font-medium">Open 24/7</span>}
-        {resource.cost && (
-          <span className="inline-block bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 text-sm px-2 py-1 rounded">
-            {resource.cost === 'free' ? 'Free' : resource.cost === 'sliding_scale' ? 'Sliding Scale' : 'Insurance Required'}
-          </span>
-        )}
-        {resource.eligibility && (
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-            {resource.eligibility}
-          </p>
-        )}
       </div>
+
+      {resource.website && (
+        <a
+          href={resource.website}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => track('resource_website', { resourceName: resource.name })}
+          className="mt-2 flex items-center justify-center gap-2 bg-[var(--surface-2)] text-[var(--ink)] rounded-xl py-2.5 font-semibold text-[12px] min-h-[40px]"
+        >
+          🌐 Website
+        </a>
+      )}
+
+      {resource.eligibility && (
+        <p className="text-[11px] text-[var(--ink-3)] mt-3 pt-3 border-t border-[var(--stroke)]">
+          ℹ️ {resource.eligibility}
+        </p>
+      )}
     </div>
   )
 }
