@@ -1,41 +1,43 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 interface NavItem {
   id: string
   label: string
-  href?: string
+  href: string
   badge?: number
   disabled?: boolean
 }
 
 /**
- * Staff console left rail — Overview is active; the rest are
- * disabled-with-coming-soon treatment (we only have Overview backed by
- * real data today). Marked disabled so they still render in the design
- * so stakeholders see the roadmap, but click-through is blocked.
+ * Staff console left rail. Every nav item links to a real page under
+ * /dashboard/* — the pages themselves mix real DB data with design-
+ * placeholder rows where we don't have a backing collection yet
+ * (audit log, settings). The badge count on Crisis log pulls from the
+ * current range's crisis-session count and is passed in as a prop.
  */
-export function Sidebar({
-  active = 'overview',
-  crisisCount = 0,
-}: {
-  active?: string
-  crisisCount?: number
-}) {
+export function Sidebar({ crisisCount = 0 }: { crisisCount?: number }) {
+  const pathname = usePathname() ?? '/dashboard'
+
   const items: NavItem[] = [
     { id: 'overview',  label: 'Overview',    href: '/dashboard' },
-    { id: 'crisis',    label: 'Crisis log',  badge: crisisCount, disabled: true },
-    { id: 'analytics', label: 'Analytics',   disabled: true },
-    { id: 'resources', label: 'Resources',   disabled: true },
-    { id: 'audit',     label: 'Audit log',   disabled: true },
-    { id: 'users',     label: 'Users',       disabled: true },
-    { id: 'settings',  label: 'Settings',    disabled: true },
+    { id: 'crisis',    label: 'Crisis log',  href: '/dashboard/crisis',    badge: crisisCount },
+    { id: 'analytics', label: 'Analytics',   href: '/dashboard/analytics' },
+    { id: 'resources', label: 'Resources',   href: '/dashboard/resources' },
+    { id: 'audit',     label: 'Audit log',   href: '/dashboard/audit' },
+    { id: 'users',     label: 'Users',       href: '/dashboard/users' },
+    { id: 'settings',  label: 'Settings',    href: '/dashboard/settings' },
   ]
+
+  function isActive(href: string): boolean {
+    if (href === '/dashboard') return pathname === '/dashboard'
+    return pathname === href || pathname.startsWith(href + '/')
+  }
 
   return (
     <aside className="w-[232px] shrink-0 bg-[var(--sidebar)] text-[var(--sidebar-ink)] flex flex-col min-h-[100dvh] sticky top-0 hidden lg:flex print:hidden">
-      {/* Brand */}
       <div className="px-5 py-5 flex items-center gap-2.5 border-b border-white/5">
         <div
           className="w-9 h-9 rounded-xl bg-[var(--accent-primary)] text-white flex items-center justify-center font-bold text-[15px]"
@@ -52,71 +54,36 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-2.5 py-3 flex flex-col gap-0.5 overflow-auto">
         {items.map((item) => {
-          const isActive = item.id === active && !item.disabled
-          const base =
-            'h-9 px-2.5 rounded-lg flex items-center gap-2.5 text-[13.5px] font-medium transition'
-          const state = item.disabled
-            ? 'opacity-40 cursor-not-allowed text-[var(--sidebar-ink-2)]'
-            : isActive
-            ? 'bg-[var(--sidebar-active)] text-white'
-            : 'text-[var(--sidebar-ink-2)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-ink)]'
-
-          const content = (
-            <>
+          const active = isActive(item.href)
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`h-9 px-2.5 rounded-lg flex items-center gap-2.5 text-[13.5px] font-medium transition ${
+                active
+                  ? 'bg-[var(--sidebar-active)] text-white'
+                  : 'text-[var(--sidebar-ink-2)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-ink)]'
+              }`}
+              aria-current={active ? 'page' : undefined}
+            >
               <NavIcon id={item.id} />
               <span className="flex-1 truncate">{item.label}</span>
               {item.badge && item.badge > 0 ? (
                 <span
                   className={`px-1.5 py-0.5 rounded-md text-[10.5px] font-bold num ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-[var(--urgent-red)] text-white'
+                    active ? 'bg-white/20 text-white' : 'bg-[var(--urgent-red)] text-white'
                   }`}
                 >
                   {item.badge}
                 </span>
               ) : null}
-              {item.disabled && (
-                <svg
-                  className="w-3 h-3 shrink-0 opacity-60"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-label="Coming soon"
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              )}
-            </>
-          )
-
-          if (item.href && !item.disabled) {
-            return (
-              <Link key={item.id} href={item.href} className={`${base} ${state}`}>
-                {content}
-              </Link>
-            )
-          }
-          return (
-            <button
-              key={item.id}
-              type="button"
-              disabled={item.disabled}
-              className={`${base} ${state} w-full text-left`}
-              title={item.disabled ? 'Coming soon' : undefined}
-            >
-              {content}
-            </button>
+            </Link>
           )
         })}
       </nav>
 
-      {/* Footer tag */}
       <div className="px-5 pt-3 pb-4 border-t border-white/5 text-[10.5px] text-[var(--sidebar-ink-2)] leading-snug">
         <div className="font-semibold text-[var(--sidebar-ink)]">Pilot environment</div>
         <div>Norfolk Healthcare Safety Net Collaborative</div>
@@ -125,7 +92,6 @@ export function Sidebar({
   )
 }
 
-/** Minimal outline icons per nav item — keeps the sidebar at one weight. */
 function NavIcon({ id }: { id: string }) {
   const common = {
     className: 'w-4 h-4 shrink-0',

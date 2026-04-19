@@ -37,7 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
       <body>
         <div className="min-h-[100dvh] bg-[var(--page-bg)] text-[var(--ink)] flex print:bg-white">
-          <Sidebar active="overview" />
+          <Sidebar />
           <div className="flex-1 min-w-0 flex flex-col">{children}</div>
         </div>
       </body>
