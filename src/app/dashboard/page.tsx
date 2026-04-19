@@ -14,6 +14,12 @@ import { FunnelChart } from './components/FunnelChart'
 
 export const dynamic = 'force-dynamic'
 
+// Shared section-wrapper styling. Using a constant keeps every dashboard
+// card visually consistent and makes global tweaks (e.g. adding padding)
+// a single-line change.
+const CARD = 'rounded-2xl border border-[var(--stroke)] bg-[var(--surface-0)] p-5 shadow-[var(--shadow-card)]'
+const SECTION_H2 = 'font-display mb-3 text-base font-semibold text-[var(--ink)]'
+
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
@@ -105,27 +111,29 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       </section>
 
       {/* Trend (wide) */}
-      <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="mb-3 text-base font-semibold text-gray-800">Sessions over time</h2>
+      <section className={CARD}>
+        <h2 className={SECTION_H2}>Sessions over time</h2>
         <TrendChart data={data.dailyTrend} />
       </section>
 
       {/* Routing mix + Care types */}
       <section className="grid gap-3 lg:grid-cols-2">
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-base font-semibold text-gray-800">Care routing mix</h2>
+        <div className={CARD}>
+          <h2 className={SECTION_H2}>Care routing mix</h2>
           <RoutingMixChart data={data.routingMix} />
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-base font-semibold text-gray-800">Sessions by care type</h2>
+        <div className={CARD}>
+          <h2 className={SECTION_H2}>Sessions by care type</h2>
           <CareTypeChart data={data.careTypeBreakdown} />
         </div>
       </section>
 
       {/* Hourly heatmap */}
-      <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="mb-1 text-base font-semibold text-gray-800">When people seek care</h2>
-        <p className="mb-4 text-xs text-gray-600">
+      <section className={CARD}>
+        <h2 className="font-display mb-1 text-base font-semibold text-[var(--ink)]">
+          When people seek care
+        </h2>
+        <p className="mb-4 text-xs text-[var(--ink-3)]">
           Session volume by day of week and hour of day (local time). Darker cells = more sessions.
         </p>
         <HourlyHeatmap data={data.hourlyHeatmap} />
@@ -133,23 +141,29 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
       {/* Patient funnel + Resource engagement */}
       <section className="grid gap-3 lg:grid-cols-2">
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-1 text-base font-semibold text-gray-800">Patient funnel</h2>
-          <p className="mb-3 text-xs text-gray-600">Drop-off at each step of the triage flow</p>
+        <div className={CARD}>
+          <h2 className="font-display mb-1 text-base font-semibold text-[var(--ink)]">
+            Patient funnel
+          </h2>
+          <p className="mb-3 text-xs text-[var(--ink-3)]">Drop-off at each step of the triage flow</p>
           <FunnelChart data={data.funnel} />
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-1 text-base font-semibold text-gray-800">Resource engagement</h2>
-          <p className="mb-3 text-xs text-gray-600">Which resources patients actually interact with</p>
+        <div className={CARD}>
+          <h2 className="font-display mb-1 text-base font-semibold text-[var(--ink)]">
+            Resource engagement
+          </h2>
+          <p className="mb-3 text-xs text-[var(--ink-3)]">
+            Which resources patients actually interact with
+          </p>
           {data.resourceEngagement.length === 0 ? (
-            <div className="flex h-64 items-center justify-center text-sm text-gray-500">
+            <div className="flex h-64 items-center justify-center text-sm text-[var(--ink-3)]">
               No resource engagement data yet.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b text-left text-xs font-semibold text-gray-600">
+                  <tr className="border-b border-[var(--stroke)] text-left text-xs font-semibold text-[var(--ink-3)]">
                     <th className="pb-2">Provider</th>
                     <th className="pb-2 text-center">Calls</th>
                     <th className="pb-2 text-center">Directions</th>
@@ -159,12 +173,23 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                 </thead>
                 <tbody>
                   {data.resourceEngagement.slice(0, 10).map((r) => (
-                    <tr key={r.name} className="border-b border-gray-100">
-                      <td className="py-2 pr-4 text-gray-800 truncate max-w-[200px]" title={r.name}>{r.name}</td>
-                      <td className="py-2 text-center font-semibold text-blue-600">{r.calls || '\u2014'}</td>
-                      <td className="py-2 text-center font-semibold text-green-600">{r.directions || '\u2014'}</td>
-                      <td className="py-2 text-center font-semibold text-purple-600">{r.website || '\u2014'}</td>
-                      <td className="py-2 text-center font-bold">{r.total}</td>
+                    <tr key={r.name} className="border-b border-[var(--stroke)]/50">
+                      <td
+                        className="py-2 pr-4 text-[var(--ink)] truncate max-w-[200px]"
+                        title={r.name}
+                      >
+                        {r.name}
+                      </td>
+                      <td className="py-2 text-center font-semibold num text-[var(--accent-primary)]">
+                        {r.calls || '\u2014'}
+                      </td>
+                      <td className="py-2 text-center font-semibold num text-[var(--accent-sage-ink)]">
+                        {r.directions || '\u2014'}
+                      </td>
+                      <td className="py-2 text-center font-semibold num text-[var(--urgent-lavender)]">
+                        {r.website || '\u2014'}
+                      </td>
+                      <td className="py-2 text-center font-bold num text-[var(--ink)]">{r.total}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -176,21 +201,21 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
       {/* Partner referrals + Map */}
       <section className="grid gap-3 lg:grid-cols-2">
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-base font-semibold text-gray-800">Top partner referrals</h2>
+        <div className={CARD}>
+          <h2 className={SECTION_H2}>Top partner referrals</h2>
           <PartnerReferralChart data={data.topPartners.map(({ name, count }) => ({ name, count }))} />
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-base font-semibold text-gray-800">Referral destinations</h2>
+        <div className={CARD}>
+          <h2 className={SECTION_H2}>Referral destinations</h2>
           <ReferralMap partners={data.topPartners} />
         </div>
       </section>
 
       {/* Footer note */}
-      <section className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-xs text-gray-600">
-        <strong>Coming post-pilot:</strong> virtual visit completion rate (Lackey virtual
-        platform feed), ED deflection estimates (Sentara data share), patient satisfaction
-        (SMS survey), referral click-through tracking.
+      <section className="rounded-2xl border border-dashed border-[var(--stroke-strong)] bg-[var(--surface-2)]/50 p-4 text-xs text-[var(--ink-2)]">
+        <strong className="text-[var(--ink)]">Coming post-pilot:</strong> virtual visit completion
+        rate (Lackey virtual platform feed), ED deflection estimates (Sentara data share), patient
+        satisfaction (SMS survey), referral click-through tracking.
       </section>
     </div>
   )

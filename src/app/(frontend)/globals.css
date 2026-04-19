@@ -30,6 +30,7 @@
 
   --font-display: var(--font-fraunces), Georgia, serif;
   --font-body:    var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono:    ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
 
   --page-bg:   oklch(0.955 0.018 70);
   --surface-0: oklch(0.995 0.005 75);
@@ -37,6 +38,19 @@
   --surface-2: oklch(0.955 0.012 72);
   --surface-3: oklch(0.92 0.015 70);
   --frame:     oklch(0.28 0.02 40);
+
+  /* Dashboard-only tokens — the staff console has a darker sidebar and a
+   * tighter urgency palette for the Crisis log / funnel. Kept in the same
+   * :root block so the patient flow can reuse `--urgent-*` without a
+   * separate stylesheet import. */
+  --sidebar:        oklch(0.26 0.04 145);
+  --sidebar-ink:    oklch(0.94 0.012 140);
+  --sidebar-ink-2:  oklch(0.72 0.025 145);
+  --sidebar-hover:  oklch(0.32 0.05 145);
+  --sidebar-active: oklch(0.55 0.12 142);
+  --stroke-strong:  oklch(0.82 0.02 42);
+  --shadow-card: 0 1px 2px rgba(60,30,15,0.04), 0 1px 3px rgba(60,30,15,0.03);
+  --shadow-pop:  0 10px 24px rgba(60,30,15,0.12), 0 2px 6px rgba(60,30,15,0.06);
 
   --ink:   oklch(0.22 0.025 35);
   --ink-2: oklch(0.42 0.018 40);
@@ -72,6 +86,13 @@
   --surface-2: oklch(0.30 0.017 42);
   --surface-3: oklch(0.35 0.017 42);
   --frame:     oklch(0.12 0.01 40);
+
+  --sidebar:        oklch(0.12 0.02 145);
+  --sidebar-ink:    oklch(0.96 0.01 140);
+  --sidebar-ink-2:  oklch(0.72 0.02 142);
+  --sidebar-hover:  oklch(0.22 0.03 145);
+  --sidebar-active: oklch(0.50 0.12 145);
+  --stroke-strong:  oklch(0.46 0.028 45);
 
   --ink:   oklch(0.96 0.01 70);
   --ink-2: oklch(0.78 0.012 65);
@@ -114,4 +135,16 @@ h1, h2, h3 {
 .font-display {
   font-family: var(--font-display);
   letter-spacing: -0.01em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Tabular numbers — used on the dashboard stat tiles so columns of
+ * numbers align at the decimal point and column widths don't jump as
+ * digits change. */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }

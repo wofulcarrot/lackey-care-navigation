@@ -222,11 +222,14 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
   const abandonedCount = Math.max(0, totalSessions - completedCount - allEmergencyCount)
   const completedRate = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0
 
+  // Colors here mirror CHART_COLORS in
+  // src/app/dashboard/components/chart-theme.ts. Kept in sync manually
+  // since this is a server module that can't import a 'use client' file.
   const routingMix = [
-    { name: 'Virtual care', count: virtualCount, color: '#10b981' },
-    { name: 'In-person', count: inPersonCount, color: '#3b82f6' },
-    { name: 'Emergency (911)', count: emergencyCount, color: '#ef4444' },
-    { name: 'Crisis (988)', count: crisisCount, color: '#8b5cf6' },
+    { name: 'Virtual care', count: virtualCount, color: '#6A9373' },       // sage
+    { name: 'In-person', count: inPersonCount, color: '#5A8ED8' },         // urgent-blue
+    { name: 'Emergency (911)', count: emergencyCount, color: '#D64545' },  // urgent-red
+    { name: 'Crisis (988)', count: crisisCount, color: '#AE9CC4' },        // lavender
   ].filter((r) => r.count > 0)
 
   const careTypeBreakdown = [...careTypeCounts.entries()]
@@ -293,15 +296,17 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
       }
     }
 
+    // Funnel colors — coral/sage family graduated from the top of the
+    // funnel (darkest coral) to the engagement steps (sage green).
     const funnelSteps = [
-      { event: 'emergency_screen_view', label: 'Emergency screen', color: '#1B4F72' },
-      { event: 'emergency_none', label: 'Passed emergency', color: '#2471A3' },
-      { event: 'care_type_selected', label: 'Care type selected', color: '#2E86C1' },
-      { event: 'triage_question', label: 'Questions answered', color: '#3498DB' },
-      { event: 'triage_completed', label: 'Triage completed', color: '#5DADE2' },
-      { event: 'results_view', label: 'Results viewed', color: '#85C1E9' },
-      { event: 'resource_call', label: 'Phone tapped', color: '#10b981' },
-      { event: 'resource_directions', label: 'Directions tapped', color: '#3b82f6' },
+      { event: 'emergency_screen_view', label: 'Emergency screen', color: '#6B3224' },
+      { event: 'emergency_none', label: 'Passed emergency', color: '#9A4A35' },
+      { event: 'care_type_selected', label: 'Care type selected', color: '#C16049' },
+      { event: 'triage_question', label: 'Questions answered', color: '#E07A5F' },
+      { event: 'triage_completed', label: 'Triage completed', color: '#E89A86' },
+      { event: 'results_view', label: 'Results viewed', color: '#F2BFB0' },
+      { event: 'resource_call', label: 'Phone tapped', color: '#6A9373' },
+      { event: 'resource_directions', label: 'Directions tapped', color: '#5A8ED8' },
     ]
     funnel = funnelSteps.map((s) => ({
       name: s.label,

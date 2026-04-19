@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { CHART_COLORS, CHART_TICK_STYLE, CHART_GRID_STROKE } from './chart-theme'
 
 interface DayData {
   date: string
@@ -32,23 +33,47 @@ function CustomTooltip({ active, payload, label }: any) {
   const total = (day.virtual ?? 0) + (day.inPerson ?? 0) + (day.emergency ?? 0) + (day.crisis ?? 0)
 
   return (
-    <div style={{
-      background: 'white',
-      border: '1px solid #e5e7eb',
-      borderRadius: 8,
-      padding: '10px 14px',
-      fontSize: 13,
-      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-    }}>
-      <div style={{ fontWeight: 700, marginBottom: 6 }}>{formatDate(label)}</div>
-      <div style={{ fontWeight: 600, marginBottom: 4, borderBottom: '1px solid #f3f4f6', paddingBottom: 4 }}>
+    <div
+      style={{
+        background: '#FEFDFB',
+        border: `1px solid ${CHART_COLORS.stroke}`,
+        borderRadius: 12,
+        padding: '10px 14px',
+        fontSize: 13,
+        boxShadow: '0 10px 24px rgba(60,30,15,0.12)',
+        color: CHART_COLORS.ink,
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: 6, fontFamily: 'var(--font-display)' }}>
+        {formatDate(label)}
+      </div>
+      <div
+        style={{
+          fontWeight: 600,
+          marginBottom: 4,
+          borderBottom: `1px solid ${CHART_COLORS.stroke}`,
+          paddingBottom: 4,
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
         Total: {total}
       </div>
       {payload.map((entry: any) => (
-        <div key={entry.dataKey} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0' }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: entry.fill, flexShrink: 0 }} />
-          <span style={{ color: '#6b7280' }}>{entry.name}:</span>
-          <span style={{ fontWeight: 600 }}>{entry.value}</span>
+        <div
+          key={entry.dataKey}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0' }}
+        >
+          <span
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 2,
+              background: entry.fill,
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ color: CHART_COLORS.ink2 }}>{entry.name}:</span>
+          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{entry.value}</span>
         </div>
       ))}
     </div>
@@ -58,7 +83,7 @@ function CustomTooltip({ active, payload, label }: any) {
 export function TrendChart({ data }: { data: DayData[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-gray-500">
+      <div className="flex h-64 items-center justify-center text-sm text-[var(--ink-3)]">
         No session data in this range.
       </div>
     )
@@ -68,15 +93,15 @@ export function TrendChart({ data }: { data: DayData[] }) {
     <div style={{ width: '100%', height: 320 }}>
       <ResponsiveContainer>
         <BarChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />
+          <XAxis dataKey="date" tickFormatter={formatDate} tick={CHART_TICK_STYLE} stroke={CHART_GRID_STROKE} />
+          <YAxis tick={CHART_TICK_STYLE} allowDecimals={false} stroke={CHART_GRID_STROKE} />
           <Tooltip content={<CustomTooltip />} />
-          <Legend verticalAlign="top" height={36} />
-          <Bar dataKey="virtual" name="Virtual" stackId="day" fill="#10b981" radius={[0, 0, 0, 0]} />
-          <Bar dataKey="inPerson" name="In-person" stackId="day" fill="#3b82f6" radius={[0, 0, 0, 0]} />
-          <Bar dataKey="emergency" name="Emergency (911)" stackId="day" fill="#ef4444" radius={[0, 0, 0, 0]} />
-          <Bar dataKey="crisis" name="Crisis (988)" stackId="day" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+          <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: 12 }} />
+          <Bar dataKey="virtual" name="Virtual" stackId="day" fill={CHART_COLORS.sage} radius={[0, 0, 0, 0]} />
+          <Bar dataKey="inPerson" name="In-person" stackId="day" fill={CHART_COLORS.urgentBlue} radius={[0, 0, 0, 0]} />
+          <Bar dataKey="emergency" name="Emergency (911)" stackId="day" fill={CHART_COLORS.urgentRed} radius={[0, 0, 0, 0]} />
+          <Bar dataKey="crisis" name="Crisis (988)" stackId="day" fill={CHART_COLORS.lavender} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

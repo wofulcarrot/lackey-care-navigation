@@ -40,7 +40,7 @@ export function DateRangePicker({
   const endStr = currentEnd.toISOString().slice(0, 10)
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm print:hidden">
+    <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--surface-0)] p-4 shadow-[var(--shadow-card)] print:hidden">
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-wrap gap-1" role="group" aria-label="Date range presets">
           {PRESETS.map((p) => (
@@ -50,10 +50,10 @@ export function DateRangePicker({
               onClick={() => applyPreset(p.value)}
               aria-pressed={preset === p.value}
               disabled={isPending}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
                 preset === p.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-[var(--accent-primary)] text-white shadow-sm'
+                  : 'bg-[var(--surface-2)] text-[var(--ink-2)] hover:bg-[var(--surface-3)]'
               } disabled:opacity-60`}
             >
               {p.label}
@@ -72,37 +72,41 @@ export function DateRangePicker({
           className="flex flex-wrap items-end gap-2"
         >
           <label className="text-sm">
-            <span className="mb-0.5 block text-xs text-gray-600">Start</span>
+            <span className="mb-0.5 block text-[11px] font-semibold uppercase tracking-wider text-[var(--ink-3)]">
+              Start
+            </span>
             <input
               type="date"
               name="start"
               defaultValue={startStr}
               max={endStr}
-              className="rounded-md border border-gray-300 px-2 py-1 text-sm"
+              className="rounded-lg border border-[var(--stroke)] bg-[var(--surface-1)] px-2.5 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:border-[var(--accent-primary)]"
               aria-label="Custom start date"
             />
           </label>
           <label className="text-sm">
-            <span className="mb-0.5 block text-xs text-gray-600">End</span>
+            <span className="mb-0.5 block text-[11px] font-semibold uppercase tracking-wider text-[var(--ink-3)]">
+              End
+            </span>
             <input
               type="date"
               name="end"
               defaultValue={endStr}
               min={startStr}
-              className="rounded-md border border-gray-300 px-2 py-1 text-sm"
+              className="rounded-lg border border-[var(--stroke)] bg-[var(--surface-1)] px-2.5 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:border-[var(--accent-primary)]"
               aria-label="Custom end date"
             />
           </label>
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-md bg-gray-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-900 disabled:opacity-60"
+            className="rounded-lg bg-[var(--ink)] px-3 py-1.5 text-sm font-semibold text-[var(--surface-0)] hover:brightness-110 disabled:opacity-60"
           >
             Apply
           </button>
         </form>
       </div>
-      <div className="mt-2 text-xs text-gray-500">
+      <div className="mt-2 text-xs text-[var(--ink-3)]">
         Showing: {currentStart.toLocaleDateString()} &ndash; {currentEnd.toLocaleDateString()}
         {isPending && <span className="ml-2 italic">Loading…</span>}
       </div>

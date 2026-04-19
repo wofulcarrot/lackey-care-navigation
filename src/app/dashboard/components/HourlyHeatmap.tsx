@@ -6,6 +6,10 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
  * 7 × 24 heatmap — intensity by session count per day-of-week/hour-of-day.
  * Helps the CEO see when uninsured adults actually seek care
  * (typically evenings/weekends — the value prop of 24/7 digital entry).
+ *
+ * Cell color is a coral hue at varying alpha so the heatmap stays on-brand
+ * with the front door. Log curve keeps sparse data visible on a dashboard
+ * that might have one outlier hour dominating the linear scale.
  */
 export function HourlyHeatmap({ data }: { data: number[][] }) {
   const flat = data.flat()
@@ -14,12 +18,16 @@ export function HourlyHeatmap({ data }: { data: number[][] }) {
 
   const hourLabels = Array.from({ length: 24 }, (_, i) => i)
 
+  // Coral hue (approx matches --accent-primary, hardcoded here because
+  // inline styles can't read CSS vars for rgba composition).
+  const CORAL = '224, 122, 95'
+  const EMPTY = 'rgba(150, 140, 130, 0.08)'
+
   function cellColor(value: number): string {
-    if (value === 0) return '#f3f4f6'
-    // scale 0-1 over available intensity (log curve to show sparse data)
+    if (value === 0) return EMPTY
     const t = Math.log(value + 1) / Math.log(max + 1)
-    const alpha = 0.15 + t * 0.85
-    return `rgba(37, 99, 235, ${alpha.toFixed(2)})` // blue-600
+    const alpha = 0.18 + t * 0.75
+    return `rgba(${CORAL}, ${alpha.toFixed(2)})`
   }
 
   return (
@@ -29,7 +37,7 @@ export function HourlyHeatmap({ data }: { data: number[][] }) {
         <div className="flex">
           <div className="w-10" />
           {hourLabels.map((h) => (
-            <div key={h} className="flex-1 text-center text-[10px] text-gray-500">
+            <div key={h} className="flex-1 text-center text-[10px] text-[var(--ink-3)] num">
               {h % 3 === 0 ? `${h}` : ''}
             </div>
           ))}
@@ -37,7 +45,9 @@ export function HourlyHeatmap({ data }: { data: number[][] }) {
         {/* Rows */}
         {DAY_LABELS.map((label, day) => (
           <div key={label} className="flex items-center">
-            <div className="w-10 pr-1 text-right text-xs font-medium text-gray-600">{label}</div>
+            <div className="w-10 pr-1 text-right text-xs font-medium text-[var(--ink-2)]">
+              {label}
+            </div>
             {hourLabels.map((hour) => {
               const v = data[day]?.[hour] ?? 0
               return (
@@ -53,8 +63,8 @@ export function HourlyHeatmap({ data }: { data: number[][] }) {
           </div>
         ))}
         {/* Legend */}
-        <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-          <span>{total.toLocaleString()} total sessions</span>
+        <div className="mt-3 flex items-center justify-between text-xs text-[var(--ink-3)]">
+          <span className="num">{total.toLocaleString()} total sessions</span>
           <div className="flex items-center gap-1.5">
             <span>Less</span>
             <div className="flex gap-0.5">
@@ -62,7 +72,10 @@ export function HourlyHeatmap({ data }: { data: number[][] }) {
                 <div
                   key={t}
                   className="h-3 w-4 rounded-sm"
-                  style={{ backgroundColor: t === 0 ? '#f3f4f6' : `rgba(37, 99, 235, ${(0.15 + t * 0.85).toFixed(2)})` }}
+                  style={{
+                    backgroundColor:
+                      t === 0 ? EMPTY : `rgba(${CORAL}, ${(0.18 + t * 0.75).toFixed(2)})`,
+                  }}
                 />
               ))}
             </div>
