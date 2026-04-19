@@ -2,16 +2,14 @@ import type { Metadata } from 'next'
 import { Inter, Fraunces } from 'next/font/google'
 import 'leaflet/dist/leaflet.css'
 import '../globals.css'
+import { Sidebar } from './components/Sidebar'
 
 export const metadata: Metadata = {
-  title: 'Lackey Executive Dashboard',
+  title: 'Lackey Staff Console',
   description: 'Digital Front Door — pilot metrics for Lackey Clinic leadership',
   robots: { index: false, follow: false },
 }
 
-// Dashboard uses the same design tokens + fonts as the patient front door
-// so the staff side and the front door stay visually cohesive. The cream
-// page background and Fraunces display serif carry through.
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -25,39 +23,22 @@ const fraunces = Fraunces({
   weight: ['400', '500', '600', '700'],
 })
 
+/**
+ * Staff-console shell — a full-height two-column layout with a dark
+ * sage sidebar on the left and the main content on the right. The
+ * sidebar hides below lg so the dashboard still works on tablets; on
+ * phones the expectation is the staff views are desktop-only.
+ *
+ * No auth logic lives here — that's middleware-level Basic Auth. The
+ * layout just cares about framing.
+ */
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
       <body>
-        <div className="min-h-screen bg-[var(--page-bg)] text-[var(--ink)] print:bg-white">
-          <header className="border-b border-[var(--stroke)] bg-[var(--surface-0)] print:border-b-2">
-            <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-xl bg-[var(--accent-primary)] text-white flex items-center justify-center font-bold text-[17px] shadow-[var(--shadow-card)]"
-                    style={{ fontFamily: 'var(--font-display)' }}
-                    aria-hidden="true"
-                  >
-                    L
-                  </div>
-                  <div>
-                    <h1 className="font-display text-xl font-semibold tracking-tight sm:text-2xl text-[var(--ink)]">
-                      Lackey Digital Front Door
-                    </h1>
-                    <p className="text-sm text-[var(--ink-3)]">Executive pilot dashboard</p>
-                  </div>
-                </div>
-                <div className="text-xs text-[var(--ink-3)] print:hidden">
-                  Norfolk Healthcare Safety Net Collaborative
-                </div>
-              </div>
-            </div>
-          </header>
-          <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</main>
-          <footer className="mx-auto max-w-7xl px-4 pb-8 text-xs text-[var(--ink-3)] sm:px-6 lg:px-8">
-            Confidential &middot; For internal Lackey leadership and pilot partners only
-          </footer>
+        <div className="min-h-[100dvh] bg-[var(--page-bg)] text-[var(--ink)] flex print:bg-white">
+          <Sidebar active="overview" />
+          <div className="flex-1 min-w-0 flex flex-col">{children}</div>
         </div>
       </body>
     </html>

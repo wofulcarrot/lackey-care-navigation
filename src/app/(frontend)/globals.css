@@ -74,6 +74,15 @@
   --urgent-blue:        oklch(0.62 0.12 240);
   --urgent-lavender:    oklch(0.70 0.09 295);
 
+  /* Dashboard urgency-tier palette (6 ordered tiers) — used by the
+   * urgency donut and the completion funnel on the executive dashboard. */
+  --urgent-life: oklch(0.58 0.195 27);   /* red */
+  --urgent-emg:  oklch(0.64 0.18 45);    /* orange */
+  --urgent-urg:  oklch(0.72 0.17 70);    /* amber */
+  --urgent-semi: oklch(0.80 0.13 95);    /* yellow */
+  --urgent-rout: oklch(0.72 0.13 155);   /* green */
+  --urgent-elec: oklch(0.72 0.08 260);   /* blue */
+
   --crisis-bg: oklch(0.24 0.06 295);
 }
 
