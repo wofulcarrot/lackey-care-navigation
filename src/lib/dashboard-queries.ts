@@ -60,6 +60,29 @@ export interface DashboardData {
   resourceEngagement: { name: string; calls: number; directions: number; website: number; total: number }[]
   /** KPI tiles with deltas vs the previous period of equal length. */
   kpis: DashboardKpi[]
+  /** EN vs ES comparison stats for the Analytics page. */
+  langCompare: LangCompareStats
+}
+
+/** Analytics drill-down: side-by-side EN vs ES metrics. */
+export interface LangCompareStats {
+  en: LangSide
+  es: LangSide
+}
+export interface LangSide {
+  total: number
+  completionRate: number // 0..1
+  crisisRate: number     // 0..1
+  virtualCtr: number     // 0..1
+  mix: {
+    life: number // percent of sessions (0..100)
+    emg: number
+    urg: number
+    semi: number
+    rout: number
+    elec: number
+  }
+  care: { id: string; label: string; pct: number }[]
 }
 
 /**
@@ -331,6 +354,66 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
     { id: 'spanish',    label: 'Spanish sessions',    value: spanishPct,     delta: spanishPct - prevSpanishPct,               unit: '%' },
   ]
 
+  // ── Language compare (EN vs ES) for Analytics drill-down. Second
+  //    pass over docs so we can bucket every metric by locale without
+  //    carrying a locale shadow for every accumulator above.
+  function buildLangSide(locale: 'en' | 'es'): LangSide {
+    let total = 0
+    let completed = 0
+    let crisis = 0
+    let virtual = 0
+    const urgencyTierCounts = { life: 0, emg: 0, urg: 0, semi: 0, rout: 0, elec: 0 }
+    const careCounts = new Map<string, number>()
+    for (const d of docs) {
+      if (d.locale !== locale) continue
+      total++
+      if (d.completedFlow && !d.emergencyScreenTriggered) completed++
+      if (d.isCrisis === true) crisis++
+      if (d.completedFlow && d.virtualCareOffered && !d.emergencyScreenTriggered) virtual++
+      const u = d.urgencyResult
+      if (u && typeof u === 'object' && 'name' in u) {
+        const norm = String(u.name).toLowerCase()
+        if (norm.startsWith('life')) urgencyTierCounts.life++
+        else if (norm.startsWith('emergent') || norm.startsWith('emergente')) urgencyTierCounts.emg++
+        else if (norm.startsWith('urgent') || norm.startsWith('urgente')) urgencyTierCounts.urg++
+        else if (norm.startsWith('semi')) urgencyTierCounts.semi++
+        else if (norm.startsWith('routine') || norm.startsWith('rutina')) urgencyTierCounts.rout++
+        else if (norm.startsWith('elective') || norm.startsWith('electiva')) urgencyTierCounts.elec++
+      }
+      const ct = d.careTypeSelected
+      if (ct && typeof ct === 'object' && 'name' in ct) {
+        careCounts.set(ct.name, (careCounts.get(ct.name) ?? 0) + 1)
+      }
+    }
+    // Convert tier counts → percent-of-total.
+    const mix = total > 0
+      ? Object.fromEntries(
+          Object.entries(urgencyTierCounts).map(([k, v]) => [k, Math.round((v / total) * 1000) / 10]),
+        ) as LangSide['mix']
+      : urgencyTierCounts
+    // Top 4 care types by share.
+    const care = [...careCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([name, count]) => ({
+        id: name.toLowerCase().replace(/\s+/g, '-'),
+        label: name,
+        pct: total > 0 ? Math.round((count / total) * 100) : 0,
+      }))
+    return {
+      total,
+      completionRate: total > 0 ? completed / total : 0,
+      crisisRate: total > 0 ? crisis / total : 0,
+      virtualCtr: total > 0 ? virtual / total : 0,
+      mix,
+      care,
+    }
+  }
+  const langCompare: LangCompareStats = {
+    en: buildLangSide('en'),
+    es: buildLangSide('es'),
+  }
+
   // Colors here mirror CHART_COLORS in
   // src/app/dashboard/components/chart-theme.ts. Kept in sync manually
   // since this is a server module that can't import a 'use client' file.
@@ -480,6 +563,7 @@ export async function getDashboardData(range: DashboardDateRange): Promise<Dashb
     funnel,
     resourceEngagement,
     kpis,
+    langCompare,
   }
 }
 
