@@ -2,6 +2,7 @@ import { getDashboardData, parseDateRange } from '../../lib/dashboard-queries'
 import { Card } from './components/Card'
 import { DateRangePicker } from './components/DateRangePicker'
 import { ExportButton } from './components/ExportButton'
+import { TopBar } from './components/TopBar'
 import { KpiTile } from './components/KpiTile'
 import { VolumeLine } from './components/VolumeLine'
 import { UrgencyDonut } from './components/UrgencyDonut'
@@ -31,45 +32,38 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     ' – ' +
     range.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
+  const exportData = {
+    dateRange: {
+      start: data.dateRange.start.toISOString(),
+      end: data.dateRange.end.toISOString(),
+    },
+    days: data.days,
+    totalSessions: data.totalSessions,
+    completedCount: data.completedCount,
+    completedRate: data.completedRate,
+    virtualCount: data.virtualCount,
+    emergencyCount: data.emergencyCount,
+    crisisCount: data.crisisCount,
+    inPersonCount: data.inPersonCount,
+    abandonedCount: data.abandonedCount,
+    routingMix: data.routingMix.map(({ name, count }) => ({ name, count })),
+    careTypeBreakdown: data.careTypeBreakdown,
+    urgencyBreakdown: data.urgencyBreakdown.map(({ name, count }) => ({ name, count })),
+    languageBreakdown: data.languageBreakdown,
+    deviceBreakdown: data.deviceBreakdown,
+    dailyTrend: data.dailyTrend,
+    hourlyHeatmap: data.hourlyHeatmap,
+    topPartners: data.topPartners,
+    virtualPacing: data.virtualPacing,
+  }
+
   return (
     <>
-      {/* Top bar: breadcrumb kicker, page title, user controls */}
-      <header className="border-b border-[var(--stroke)] bg-[var(--surface-0)] px-6 lg:px-8 py-5 flex items-start justify-between gap-4 flex-wrap">
-        <div className="min-w-0">
-          <div className="font-display text-[22px] font-semibold text-[var(--ink)] leading-tight">
-            Overview
-          </div>
-          <p className="text-[13px] text-[var(--ink-2)] mt-1">
-            Welcome back. Here&apos;s what&apos;s happening at Lackey today.
-          </p>
-        </div>
-        <ExportButton
-          data={{
-            dateRange: {
-              start: data.dateRange.start.toISOString(),
-              end: data.dateRange.end.toISOString(),
-            },
-            days: data.days,
-            totalSessions: data.totalSessions,
-            completedCount: data.completedCount,
-            completedRate: data.completedRate,
-            virtualCount: data.virtualCount,
-            emergencyCount: data.emergencyCount,
-            crisisCount: data.crisisCount,
-            inPersonCount: data.inPersonCount,
-            abandonedCount: data.abandonedCount,
-            routingMix: data.routingMix.map(({ name, count }) => ({ name, count })),
-            careTypeBreakdown: data.careTypeBreakdown,
-            urgencyBreakdown: data.urgencyBreakdown.map(({ name, count }) => ({ name, count })),
-            languageBreakdown: data.languageBreakdown,
-            deviceBreakdown: data.deviceBreakdown,
-            dailyTrend: data.dailyTrend,
-            hourlyHeatmap: data.hourlyHeatmap,
-            topPartners: data.topPartners,
-            virtualPacing: data.virtualPacing,
-          }}
-        />
-      </header>
+      <TopBar
+        title="Overview"
+        subtitle="Welcome back. Here&apos;s what&apos;s happening at Lackey today."
+        actions={<ExportButton data={exportData} />}
+      />
 
       {/* Main scroll area */}
       <main className="flex-1 px-6 lg:px-8 py-6 space-y-6">

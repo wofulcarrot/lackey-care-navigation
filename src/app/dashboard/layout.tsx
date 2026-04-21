@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
-import { Inter, Fraunces } from 'next/font/google'
+import { Inter, Fraunces, JetBrains_Mono } from 'next/font/google'
 import 'leaflet/dist/leaflet.css'
 import '../globals.css'
 import { Sidebar } from './components/Sidebar'
+import { DashboardThemeScript } from './components/DashboardThemeScript'
 
 export const metadata: Metadata = {
   title: 'Lackey Staff Console',
@@ -22,6 +23,15 @@ const fraunces = Fraunces({
   variable: '--font-fraunces',
   weight: ['400', '500', '600', '700'],
 })
+// JetBrains Mono is the numeric / mono font the design spec calls for
+// on stat values + ⌘K hints. Loaded only on the dashboard to keep the
+// patient-flow bundle lean.
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jetbrains-mono',
+  weight: ['400', '500'],
+})
 
 /**
  * Staff-console shell — a full-height two-column layout with a dark
@@ -34,7 +44,16 @@ const fraunces = Fraunces({
  */
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${fraunces.variable} ${jetBrainsMono.variable}`}
+    >
+      <head>
+        {/* Sets `dashboard-scope` + theme class on <html> before paint so
+            there's no flash of wrong palette on refresh. */}
+        <DashboardThemeScript />
+      </head>
       <body>
         <div className="min-h-[100dvh] bg-[var(--page-bg)] text-[var(--ink)] flex print:bg-white">
           <Sidebar />

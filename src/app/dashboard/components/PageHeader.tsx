@@ -1,9 +1,15 @@
 import type { ReactNode } from 'react'
+import { TopBar } from './TopBar'
 
 /**
- * Consistent top bar across every dashboard subpage — matches the
- * Overview page's header layout (Fraunces title + ink-2 subtitle +
- * optional trailing actions).
+ * Thin alias over TopBar. Every dashboard subpage (crisis, analytics,
+ * resources, users, audit, settings) was originally written to import
+ * PageHeader — keeping the alias means those pages pick up the new
+ * TopBar (with search, theme toggle, and user menu) automatically
+ * without touching every page.tsx.
+ *
+ * New code should import TopBar directly; PageHeader stays for
+ * backward compat with the subpages that already reference it.
  */
 export function PageHeader({
   title,
@@ -14,17 +20,5 @@ export function PageHeader({
   subtitle?: ReactNode
   actions?: ReactNode
 }) {
-  return (
-    <header className="border-b border-[var(--stroke)] bg-[var(--surface-0)] px-6 lg:px-8 py-5 flex items-start justify-between gap-4 flex-wrap">
-      <div className="min-w-0">
-        <div className="font-display text-[22px] font-semibold text-[var(--ink)] leading-tight">
-          {title}
-        </div>
-        {subtitle && (
-          <p className="text-[13px] text-[var(--ink-2)] mt-1">{subtitle}</p>
-        )}
-      </div>
-      {actions && <div className="shrink-0 flex items-center gap-2">{actions}</div>}
-    </header>
-  )
+  return <TopBar title={title} subtitle={subtitle} actions={actions} />
 }
