@@ -1,3 +1,18 @@
+type Tone = 'neutral' | 'success' | 'warning' | 'danger'
+
+/**
+ * Dashboard stat tile — a label kicker, big tabular number, optional
+ * sublabel. Tone tints the value color so at-a-glance scanning picks
+ * out healthy / warning / danger tiers.
+ *
+ * Design notes:
+ *  - The whole tile sits on --surface-0 regardless of tone; only the
+ *    value text gets colored. A tinted background would make a row of
+ *    5 tiles visually noisy.
+ *  - Numbers use the .num utility (tabular-nums) so columns align.
+ *  - Label is uppercase + tracked — reads as a small-caps caption
+ *    against the large numeric value.
+ */
 export function MetricTile({
   label,
   value,
@@ -7,25 +22,25 @@ export function MetricTile({
   label: string
   value: string | number
   sublabel?: string
-  tone?: 'neutral' | 'success' | 'warning' | 'danger'
+  tone?: Tone
 }) {
-  const toneBg = {
-    neutral: 'bg-white',
-    success: 'bg-emerald-50',
-    warning: 'bg-amber-50',
-    danger: 'bg-red-50',
-  }[tone]
-  const toneText = {
-    neutral: 'text-gray-900',
-    success: 'text-emerald-700',
-    warning: 'text-amber-700',
-    danger: 'text-red-700',
-  }[tone]
+  const toneText: Record<Tone, string> = {
+    neutral: 'text-[var(--ink)]',
+    success: 'text-[var(--accent-sage-ink)]',
+    warning: 'text-[var(--urgent-yellow-ink)]',
+    danger:  'text-[var(--urgent-red)]',
+  }
   return (
-    <div className={`rounded-lg border border-gray-200 ${toneBg} p-5 shadow-sm`}>
-      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</div>
-      <div className={`mt-1 text-3xl font-bold tabular-nums ${toneText}`}>{value}</div>
-      {sublabel && <div className="mt-0.5 text-xs text-gray-500">{sublabel}</div>}
+    <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--surface-0)] p-5 shadow-[var(--shadow-card)]">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--ink-3)]">
+        {label}
+      </div>
+      <div className={`mt-1.5 font-display text-3xl font-semibold num ${toneText[tone]}`}>
+        {value}
+      </div>
+      {sublabel && (
+        <div className="mt-0.5 text-xs text-[var(--ink-3)]">{sublabel}</div>
+      )}
     </div>
   )
 }

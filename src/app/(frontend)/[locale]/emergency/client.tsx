@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { EmergencyAlert } from '@/components/EmergencyAlert'
+import { OptionRow } from '@/components/ui/OptionRow'
+import { PrimaryButton } from '@/components/ui/Button'
 import { track } from '@/lib/tracker'
 import { SESSION_KEYS } from '@/lib/constants'
 import { logEmergencyBeacon } from '@/lib/log-emergency-beacon'
@@ -46,30 +48,36 @@ export function EmergencyScreenClient({ symptoms }: { symptoms: Symptom[] }) {
   if (showAlert) return <EmergencyAlert onDismiss={() => setShowAlert(false)} />
 
   return (
-    <div className="px-4 py-6">
-      <h1 className="text-2xl font-bold mb-6 text-red-700 dark:text-red-400">{t('title')}</h1>
-      <div className="flex flex-col gap-3 mb-8">
+    <div className="px-5 py-5 max-w-[440px] mx-auto">
+      <div className="mb-4">
+        <div className="inline-flex items-center gap-2 rounded-full bg-[var(--urgent-red-soft)] text-[var(--urgent-red)] px-3 py-1 text-[11px] font-bold uppercase tracking-wide mb-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--urgent-red)]" />
+          {t('kicker')}
+        </div>
+        <h1 className="font-display text-[24px] leading-tight font-semibold mb-2 text-[var(--ink)]">
+          {t('title')}
+        </h1>
+        <p className="text-[var(--ink-2)] text-[14px]">{t('body')}</p>
+      </div>
+
+      <div className="flex flex-col gap-2 mb-5">
         {symptoms.map((s) => (
-          <button
+          <OptionRow
             key={s.id}
+            title={s.symptom}
+            selected={checked.has(s.id)}
             onClick={() => toggle(s.id)}
-            aria-pressed={checked.has(s.id)}
-            className={`w-full text-left p-4 rounded-xl border-2 text-lg min-h-[48px] transition ${
-              checked.has(s.id)
-                ? 'border-red-600 bg-red-50 dark:bg-red-950/40 dark:border-red-500 dark:text-red-100 font-bold'
-                : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100'
-            }`}
-          >
-            {s.symptom}
-          </button>
+            variant="red"
+          />
         ))}
       </div>
-      <button
+
+      <PrimaryButton
+        tone={checked.size > 0 ? 'red' : 'coral'}
         onClick={handleSubmit}
-        className="block w-full bg-gray-100 dark:bg-gray-800 dark:text-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
       >
-        {checked.size > 0 ? t('alert') : t('noneOfThese')}
-      </button>
+        {checked.size > 0 ? `📞 ${t('alert')}` : t('noneOfThese')}
+      </PrimaryButton>
     </div>
   )
 }

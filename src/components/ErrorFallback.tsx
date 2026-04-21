@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { PrimaryButton, GhostButton } from './ui/Button'
 
 interface ErrorFallbackProps {
   clinicPhone?: string
@@ -8,31 +9,37 @@ interface ErrorFallbackProps {
   onRetry?: () => void
 }
 
+/**
+ * Unified empty / error screen. Shown by per-route error.tsx boundaries
+ * when a server component throws, and by the results page when the API
+ * call fails (isFallback=true). Gives the patient a live phone number
+ * and the virtual-care link so they never hit a dead end.
+ */
 export function ErrorFallback({ clinicPhone, virtualCareUrl, onRetry }: ErrorFallbackProps) {
   const t = useTranslations('common')
   const tResults = useTranslations('results')
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t('errorTitle')}</h2>
-      <div className="flex flex-col gap-4 w-full max-w-sm">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center max-w-[440px] mx-auto">
+      <h2 className="font-display text-[24px] font-semibold mb-4 text-[var(--ink)]">
+        {t('errorTitle')}
+      </h2>
+      <div className="flex flex-col gap-3 w-full">
         {clinicPhone && (
-          <a href={`tel:${clinicPhone}`} className="block w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]">
+          <PrimaryButton tone="coral" href={`tel:${clinicPhone}`}>
             {tResults('call')} Lackey Clinic
-          </a>
+          </PrimaryButton>
         )}
         {virtualCareUrl && (
-          <a href={virtualCareUrl} target="_blank" rel="noopener noreferrer" className="block w-full bg-green-700 hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-400 text-white text-center py-4 rounded-xl text-lg font-bold min-h-[48px]">
-            {t('startVirtualVisit')}
-          </a>
-        )}
-        {onRetry && (
-          <button
-            onClick={onRetry}
-            className="block w-full bg-gray-100 dark:bg-gray-800 dark:text-gray-100 text-gray-700 text-center py-4 rounded-xl text-lg font-medium min-h-[48px]"
+          <PrimaryButton
+            tone="sage"
+            href={virtualCareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            {tResults('startOver')}
-          </button>
+            {t('startVirtualVisit')}
+          </PrimaryButton>
         )}
+        {onRetry && <GhostButton onClick={onRetry}>{tResults('startOver')}</GhostButton>}
       </div>
     </div>
   )

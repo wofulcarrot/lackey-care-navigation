@@ -57,6 +57,18 @@ function unauthorized(): NextResponse {
 
 async function basicAuth(request: NextRequest): Promise<NextResponse> {
   const isProduction = process.env.NODE_ENV === 'production'
+  const vercelEnv = process.env.VERCEL_ENV // 'production' | 'preview' | 'development'
+
+  // On Vercel preview deploys, Vercel's own SSO Deployment Protection
+  // already gates access to the URL at the CDN edge — only authorized
+  // team members on the Vercel project can reach the app at all.
+  // Layering Basic Auth on top of SSO just creates a double-prompt with
+  // no additional security benefit (and makes sharing the preview with
+  // internal reviewers a chore). Skip Basic Auth when VERCEL_ENV=preview.
+  if (vercelEnv === 'preview') {
+    return NextResponse.next()
+  }
+
   const expectedUsername = process.env.DASHBOARD_USERNAME || (isProduction ? '' : 'lackey')
   const rawExpectedPassword = process.env.DASHBOARD_PASSWORD
 

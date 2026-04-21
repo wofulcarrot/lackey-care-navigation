@@ -1,6 +1,7 @@
 'use client'
 
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import { CHART_TOOLTIP_STYLE } from './chart-theme'
 
 export function RoutingMixChart({
   data,
@@ -10,7 +11,7 @@ export function RoutingMixChart({
   const total = data.reduce((s, d) => s + d.count, 0)
   if (total === 0) {
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-gray-500">
+      <div className="flex h-64 items-center justify-center text-sm text-[var(--ink-3)]">
         No completed sessions in this range yet.
       </div>
     )
@@ -26,6 +27,7 @@ export function RoutingMixChart({
             innerRadius={55}
             outerRadius={90}
             paddingAngle={2}
+            stroke="none"
             label={(entry) => {
               const count = typeof entry.value === 'number' ? entry.value : 0
               return `${Math.round((count / total) * 100)}%`
@@ -35,8 +37,11 @@ export function RoutingMixChart({
               <Cell key={i} fill={d.color} />
             ))}
           </Pie>
-          <Tooltip formatter={(v, n) => [`${v} sessions`, String(n)]} />
-          <Legend verticalAlign="bottom" height={36} />
+          <Tooltip
+            contentStyle={CHART_TOOLTIP_STYLE}
+            formatter={(v, n) => [`${v} sessions`, String(n)]}
+          />
+          <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 12 }} />
         </PieChart>
       </ResponsiveContainer>
     </div>

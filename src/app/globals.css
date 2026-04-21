@@ -1,2 +1,152 @@
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
+
+/* Class-based dark mode override.
+ * Tailwind v4 defaults the `dark:` variant to `@media (prefers-color-scheme: dark)`.
+ * This @custom-variant declaration replaces that with a `.dark` class
+ * selector so we can toggle dark mode programmatically from a button. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Design tokens — warm nonprofit palette (from the Claude design refresh).
+ *
+ * Colors use oklch() for perceptually uniform contrast across hues. All
+ * components reference var(--ink), var(--surface-1), etc. — never hex/RGB —
+ * so theme and contrast adjustments cascade everywhere.
+ *
+ * Lives at src/app/globals.css (the root) so every route tree (frontend
+ * triage flow, admin dashboard, Payload CMS admin) picks up the same
+ * tokens from a single source of truth.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  color-scheme: light;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body:    var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono:    ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  --page-bg:   oklch(0.955 0.018 70);
+  --surface-0: oklch(0.995 0.005 75);
+  --surface-1: oklch(0.985 0.008 75);
+  --surface-2: oklch(0.93 0.018 70);   /* bumped contrast vs page-bg so
+                                          progress-bar tracks are visible */
+  --surface-3: oklch(0.88 0.02 70);
+  --frame:     oklch(0.28 0.02 40);
+
+  --ink:   oklch(0.22 0.025 35);
+  --ink-2: oklch(0.42 0.018 40);
+  --ink-3: oklch(0.58 0.015 42);
+  --stroke: oklch(0.90 0.012 70);
+  --stroke-strong: oklch(0.82 0.02 42);
+
+  --accent-primary:      oklch(0.68 0.155 35);
+  --accent-primary-soft: oklch(0.95 0.04 40);
+  --accent-primary-ink:  oklch(0.42 0.15 35);
+
+  --accent-sage:      oklch(0.55 0.08 155);
+  --accent-sage-soft: oklch(0.94 0.035 155);
+  --accent-sage-ink:  oklch(0.35 0.08 155);
+
+  /* Patient-flow urgency palette — used by the front door. */
+  --urgent-red:         oklch(0.58 0.195 27);
+  --urgent-red-soft:    oklch(0.94 0.04 25);
+  --urgent-orange:      oklch(0.70 0.17 55);
+  --urgent-yellow:      oklch(0.78 0.14 90);
+  --urgent-yellow-soft: oklch(0.95 0.055 90);
+  --urgent-yellow-ink:  oklch(0.38 0.08 75);
+  --urgent-green:       oklch(0.66 0.14 150);
+  --urgent-blue:        oklch(0.62 0.12 240);
+  --urgent-lavender:    oklch(0.70 0.09 295);
+
+  /* Dashboard urgency-tier palette (6 ordered tiers) — used by the
+   * urgency donut and the completion funnel on the executive dashboard. */
+  --urgent-life: oklch(0.58 0.195 27);   /* red */
+  --urgent-emg:  oklch(0.64 0.18 45);    /* orange */
+  --urgent-urg:  oklch(0.72 0.17 70);    /* amber */
+  --urgent-semi: oklch(0.80 0.13 95);    /* yellow */
+  --urgent-rout: oklch(0.72 0.13 155);   /* green */
+  --urgent-elec: oklch(0.72 0.08 260);   /* blue */
+
+  /* Sidebar palette for the staff console — darker sage so the dashboard
+   * reads as "work surface" vs the lighter patient flow. */
+  --sidebar:        oklch(0.26 0.04 145);
+  --sidebar-ink:    oklch(0.94 0.012 140);
+  --sidebar-ink-2:  oklch(0.72 0.025 145);
+  --sidebar-hover:  oklch(0.32 0.05 145);
+  --sidebar-active: oklch(0.55 0.12 142);
+
+  --shadow-card: 0 1px 2px rgba(60,30,15,0.04), 0 1px 3px rgba(60,30,15,0.03);
+  --shadow-pop:  0 10px 24px rgba(60,30,15,0.12), 0 2px 6px rgba(60,30,15,0.06);
+
+  --crisis-bg: oklch(0.24 0.06 295);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --page-bg:   oklch(0.18 0.015 40);
+  --surface-0: oklch(0.22 0.015 40);
+  --surface-1: oklch(0.26 0.017 42);
+  --surface-2: oklch(0.32 0.02 42);
+  --surface-3: oklch(0.40 0.02 42);
+  --frame:     oklch(0.12 0.01 40);
+
+  --ink:   oklch(0.96 0.01 70);
+  --ink-2: oklch(0.78 0.012 65);
+  --ink-3: oklch(0.60 0.012 60);
+  --stroke: oklch(0.35 0.015 45);
+  --stroke-strong: oklch(0.46 0.028 45);
+
+  --accent-primary:      oklch(0.76 0.15 38);
+  --accent-primary-soft: oklch(0.32 0.06 38);
+  --accent-primary-ink:  oklch(0.88 0.12 38);
+
+  --accent-sage:      oklch(0.72 0.11 155);
+  --accent-sage-soft: oklch(0.30 0.05 155);
+  --accent-sage-ink:  oklch(0.88 0.08 155);
+
+  --urgent-red:         oklch(0.66 0.20 27);
+  --urgent-red-soft:    oklch(0.32 0.09 27);
+  --urgent-yellow-soft: oklch(0.32 0.07 90);
+  --urgent-yellow-ink:  oklch(0.90 0.1 90);
+  --crisis-bg:          oklch(0.18 0.05 295);
+
+  --sidebar:        oklch(0.12 0.02 145);
+  --sidebar-ink:    oklch(0.96 0.01 140);
+  --sidebar-ink-2:  oklch(0.72 0.02 142);
+  --sidebar-hover:  oklch(0.22 0.03 145);
+  --sidebar-active: oklch(0.50 0.12 145);
+}
+
+/* Smooth color transition when the toggle flips the theme. */
+html {
+  background: var(--page-bg);
+  transition: background-color 0.15s ease;
+}
+body {
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.01em;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Tabular numbers — stat columns align at the decimal point. */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
