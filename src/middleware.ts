@@ -174,10 +174,16 @@ export default async function middleware(request: NextRequest) {
     return await basicAuth(request)
   }
 
-  // Rate-limit Payload CMS login to prevent brute-force attacks
-  if (pathname === '/api/users/login' && request.method === 'POST') {
-    const blocked = checkLoginRateLimit(request)
-    if (blocked) return blocked
+  // Rate-limit Payload CMS login to prevent brute-force attacks. The
+  // login endpoint is a Payload REST route, NOT a localized page — we
+  // must NOT fall through to intlMiddleware afterward, or next-intl
+  // will rewrite the path to /en/api/users/login and Payload 404s.
+  if (pathname === '/api/users/login') {
+    if (request.method === 'POST') {
+      const blocked = checkLoginRateLimit(request)
+      if (blocked) return blocked
+    }
+    return NextResponse.next()
   }
 
   // Everything else goes through next-intl locale routing
