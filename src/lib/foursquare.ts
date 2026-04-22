@@ -59,14 +59,16 @@ interface FsqResponse {
 
 const FSQ_ENDPOINT = 'https://places-api.foursquare.com/places/search'
 
-// Foursquare Places API v3 category IDs for healthcare facilities.
-// Using categories + query together yields much better results than
-// query alone (which matches "care" in anything — dog care, lawn care, etc.)
+// Foursquare Places API v3 uses 24-char hex category IDs (not the short
+// integer IDs from v2). These were verified against live API responses —
+// the short numeric IDs we previously used silently matched nothing,
+// which is why every urgent-care search was actually driven by the
+// `query=urgent` text filter plus the post-filter below.
 const HEALTHCARE_CATEGORIES = [
-  '15014', // Doctor's Office
-  '15016', // Hospital
-  '15028', // Medical Center
-  '15054', // Urgent Care Center
+  '4bf58dd8d48988d177941735', // Doctor's Office
+  '4bf58dd8d48988d196941735', // Hospital
+  '4bf58dd8d48988d104941735', // Medical Center
+  '56aa371be4b08b9a8d573526', // Urgent Care Center
 ].join(',')
 const URGENT_CARE_QUERY = 'urgent'
 
@@ -75,13 +77,16 @@ const URGENT_CARE_QUERY = 'urgent'
  * reuse the same auth / timeout / error handling / JSON parsing
  * logic. Returns raw FsqPlace[] (so callers can post-filter as
  * appropriate) or null on unrecoverable error.
+ *
+ * NOTE: FSQ v3 expects the category filter as `fsq_category_ids` (not
+ * the `categories` param that v2 used). We emit the v3 name here.
  */
 async function fsqPlacesSearch(opts: {
   lat: number
   lon: number
   radiusMiles: number
   limit: number
-  categories: string
+  fsqCategoryIds: string
   query?: string
   logTag: string
 }): Promise<FsqPlace[] | null> {
@@ -97,7 +102,7 @@ async function fsqPlacesSearch(opts: {
   const params = new URLSearchParams({
     ll: `${opts.lat.toFixed(6)},${opts.lon.toFixed(6)}`,
     radius: String(radiusMeters),
-    categories: opts.categories,
+    fsq_category_ids: opts.fsqCategoryIds,
     limit: String(Math.min(Math.max(opts.limit, 1), 50)),
     sort: 'DISTANCE',
   })
@@ -153,7 +158,7 @@ export async function searchNearbyUrgentCares(
     lon,
     radiusMiles,
     limit,
-    categories: HEALTHCARE_CATEGORIES,
+    fsqCategoryIds: HEALTHCARE_CATEGORIES,
     query: URGENT_CARE_QUERY,
     logTag: 'urgent-care',
   })
@@ -244,16 +249,44 @@ export interface NearbyChurch {
   distanceMeters?: number
 }
 
-// Foursquare category IDs for places of worship. Using the broad
-// Spiritual Center parent + several specific children so we match
-// every flavor of congregation — churches, temples, mosques, etc.
-// The patient-facing copy says "church" but the results are broader
-// on purpose.
+// Foursquare v3 category IDs for places of worship. Verified against
+// live API. We match the three major place-of-worship categories; the
+// patient-facing copy says "church" but the results are broader on
+// purpose so a Jewish or Muslim patient also finds their community.
 const WORSHIP_CATEGORIES = [
-  '12092', // Spiritual Center (parent)
-  '12013', // Church
-  '12098', // Other specific place-of-worship types
+  '4bf58dd8d48988d132941735', // Church
+  '4bf58dd8d48988d139941735', // Synagogue
+  '4bf58dd8d48988d138941735', // Mosque
 ].join(',')
+
+/**
+ * Name-level sanity check for worship results. FSQ occasionally
+ * returns places whose category is "Synagogue" or "Church" but whose
+ * name is clearly not a congregation (joke names like "BRAD AND
+ * BRYANS HOUSE OF PAIN" miscategorized by users, or business-chain
+ * names that contain religious words). Reject obvious false positives.
+ */
+function isLikelyWorship(p: FsqPlace): boolean {
+  const name = (p.name || '').toLowerCase()
+  const catNames = (p.categories ?? []).map((c) => c.name.toLowerCase())
+
+  // Must have a worship category — if it slipped past the category
+  // filter somehow, reject.
+  const worshipCats = ['church', 'synagogue', 'mosque', 'temple', 'spiritual']
+  if (!catNames.some((cn) => worshipCats.some((wc) => cn.includes(wc)))) return false
+
+  // Reject names that are clearly not congregations.
+  const nonWorshipTokens = [
+    'mortgage', 'insurance', 'real estate', 'attorney', 'legal',
+    'restaurant', 'cafe', 'coffee', 'pizza', 'bar ', ' bar',
+    'gym', 'fitness', 'spa', 'salon', 'boutique',
+    'house of pain', 'mma', 'cross fit', 'crossfit',
+    'storage', 'car wash', 'auto', 'pet', 'veterinar',
+  ]
+  if (nonWorshipTokens.some((token) => name.includes(token))) return false
+
+  return true
+}
 
 export async function searchNearbyChurches(
   lat: number,
@@ -266,11 +299,11 @@ export async function searchNearbyChurches(
     lon,
     radiusMiles,
     limit,
-    categories: WORSHIP_CATEGORIES,
+    fsqCategoryIds: WORSHIP_CATEGORIES,
     logTag: 'churches',
   })
   if (results === null) return null
-  return results.map(normalizeFsqChurch)
+  return results.filter(isLikelyWorship).map(normalizeFsqChurch)
 }
 
 function normalizeFsqChurch(p: FsqPlace): NearbyChurch {
