@@ -1,12 +1,13 @@
 /**
  * POST /api/spiritual-care/prayer-request
  *
- * Accepts { name?, email, message, locale? } from the prayer-request
- * form. Persists a row to the SpiritualCareRequests collection and
- * (if an email provider is configured) notifies the spiritual care
- * team. Email delivery is intentionally a graceful no-op when SMTP
- * / Resend isn't configured — the request is still captured in the
- * CMS and staff can process it manually from the Payload admin.
+ * Accepts { name?, email?, message, locale? } from the prayer-request
+ * form. Name and email are both optional — the only required field is
+ * the prayer message itself. Persists a row to the SpiritualCareRequests
+ * collection and (if an email provider is configured) notifies the
+ * spiritual care team. Email delivery is intentionally a graceful no-op
+ * when SMTP / Resend isn't configured — the request is still captured
+ * in the CMS and staff can process it manually from the Payload admin.
  *
  * Rate-limited to 5 submissions/IP/minute. Payload write uses
  * overrideAccess because the collection locks public reads.
@@ -43,16 +44,20 @@ export async function POST(request: Request) {
     }
 
     const name = typeof body.name === 'string' ? body.name.trim().slice(0, NAME_MAX) : undefined
-    const email = typeof body.email === 'string' ? body.email.trim().slice(0, EMAIL_MAX) : ''
+    const emailRaw = typeof body.email === 'string' ? body.email.trim().slice(0, EMAIL_MAX) : ''
     const message = typeof body.message === 'string' ? body.message.trim().slice(0, MESSAGE_MAX) : ''
     const locale = normalizeLocale(body.locale)
 
-    if (!email || !VALID_EMAIL.test(email)) {
-      return NextResponse.json({ error: 'A valid email is required.' }, { status: 400 })
+    // Email is optional, but if the patient provided one we still reject
+    // malformed values so Pedro's team doesn't get junk in the CMS.
+    if (emailRaw && !VALID_EMAIL.test(emailRaw)) {
+      return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
     }
     if (!message) {
       return NextResponse.json({ error: 'A prayer message is required.' }, { status: 400 })
     }
+
+    const email = emailRaw || undefined
 
     const payload = await getPayload({ config })
     const created = await payload.create({

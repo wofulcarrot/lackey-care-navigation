@@ -16,14 +16,15 @@ export function normalizeLocale(value: unknown): SupportedLocale {
 }
 
 /**
- * Discriminated union — the compiler now enforces that prayer payloads
- * carry an email and chaplain payloads carry a phone, so a caller can't
- * accidentally send a half-populated notification.
+ * Discriminated union — prayer payloads require a message; chaplain
+ * payloads require a phone. Email on a prayer request is optional
+ * (patients may submit anonymously and just want the team to pray for
+ * them without a follow-up).
  */
 export type NotificationPayload =
   | {
       type: 'prayer'
-      email: string
+      email?: string
       name?: string
       message: string
       locale: SupportedLocale

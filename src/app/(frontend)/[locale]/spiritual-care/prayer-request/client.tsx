@@ -23,8 +23,11 @@ export function PrayerRequestClient({ locale }: { locale: string }) {
 
   function validate(): boolean {
     const next: { email?: string; message?: string } = {}
-    if (!email.trim()) next.email = t('requiredField')
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) next.email = t('invalidEmail')
+    // Email is optional, but reject malformed entries so the team
+    // doesn't end up trying to reply to a typo.
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      next.email = t('invalidEmail')
+    }
     if (!message.trim()) next.message = t('requiredField')
     setErrors(next)
     return Object.keys(next).length === 0
@@ -40,7 +43,7 @@ export function PrayerRequestClient({ locale }: { locale: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim() || undefined,
-          email: email.trim(),
+          email: email.trim() || undefined,
           message: message.trim(),
           locale,
         }),
@@ -107,7 +110,6 @@ export function PrayerRequestClient({ locale }: { locale: string }) {
           onChange={setEmail}
           error={errors.email}
           autoComplete="email"
-          required
         />
         <TextareaField
           label={t('prayerFieldMessage')}

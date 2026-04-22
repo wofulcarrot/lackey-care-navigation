@@ -72,7 +72,7 @@ function buildBody(p: NotificationPayload): string {
   lines.push(`A new ${p.type === 'prayer' ? 'prayer request' : 'chaplain callback request'} arrived from the Lackey Digital Front Door.`)
   lines.push('')
   if (p.name) lines.push(`Name: ${p.name}`)
-  if (p.type === 'prayer') lines.push(`Email: ${p.email}`)
+  if (p.type === 'prayer') lines.push(`Email: ${p.email ?? '(not provided)'}`)
   if (p.type === 'chaplain') lines.push(`Phone: ${p.phone}`)
   lines.push(`Language: ${p.locale === 'es' ? 'Spanish' : 'English'}`)
   lines.push('')

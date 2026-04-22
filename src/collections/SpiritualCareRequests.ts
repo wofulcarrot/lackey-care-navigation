@@ -54,8 +54,9 @@ export const SpiritualCareRequests: CollectionConfig = {
       type: 'email',
       admin: {
         description:
-          'Required for prayer requests so we can close the loop. Optional for ' +
-          'chaplain callbacks.',
+          'Optional for both prayer requests and chaplain callbacks. ' +
+          'Patients may submit anonymously. When present, staff can use it ' +
+          'to reply to a prayer request.',
       },
     },
     {
