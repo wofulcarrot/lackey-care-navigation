@@ -9,10 +9,10 @@ import { ErrorFallback } from '@/components/ErrorFallback'
 import { LocationPrompt } from '@/components/LocationPrompt'
 import { TrafficLight } from '@/components/TrafficLight'
 import { PrimaryButton, GhostButton } from '@/components/ui/Button'
-import { distanceMiles, formatDistance } from '@/lib/distance'
+import { attachMilesFromFsq, formatDistance } from '@/lib/distance'
 import { track } from '@/lib/tracker'
 import type { TriageResult, TriageResource } from '@/lib/types'
-import { SESSION_KEYS, METERS_PER_MILE } from '@/lib/constants'
+import { SESSION_KEYS } from '@/lib/constants'
 
 interface Props {
   clinicPhone: string
@@ -126,25 +126,7 @@ export function ResultsClient({
   const rawResources = Array.isArray(data.resources) ? data.resources : []
 
   const resources = userLoc
-    ? [...rawResources]
-        .map((r): TriageResource & { distanceMiles?: number } => {
-          const fsqDist = typeof r.distanceMeters === 'number'
-            ? r.distanceMeters / METERS_PER_MILE
-            : undefined
-          const lat = r.address?.latitude
-          const lon = r.address?.longitude
-          const haversineDist =
-            typeof lat === 'number' && typeof lon === 'number'
-              ? distanceMiles(userLoc.lat, userLoc.lon, lat, lon)
-              : undefined
-          return { ...r, distanceMiles: fsqDist ?? haversineDist }
-        })
-        .sort((a, b) => {
-          if (a.distanceMiles == null && b.distanceMiles == null) return 0
-          if (a.distanceMiles == null) return 1
-          if (b.distanceMiles == null) return -1
-          return a.distanceMiles - b.distanceMiles
-        })
+    ? attachMilesFromFsq<TriageResource>(rawResources, userLoc, { sort: true })
     : rawResources
 
   // Subtitle under the traffic light — explains how results are ordered.

@@ -30,5 +30,13 @@ export const CareTypes: CollectionConfig = {
       admin: { description: 'Meta care types ("Not Sure") use redirectToCareType answers to route into a real care type.' } },
     { name: 'isBehavioralHealth', type: 'checkbox', defaultValue: false,
       admin: { description: 'When true, triage escalation shows the 988 crisis screen' } },
+    { name: 'customRoute', type: 'text',
+      admin: {
+        description:
+          'Optional. When set, selecting this care type routes directly to the given path ' +
+          '(e.g. "/spiritual-care") instead of the triage question flow. Used for care types ' +
+          'that don\'t fit the weighted-scoring model — Spiritual Care, for instance, is a ' +
+          'navigation hub rather than a symptom-scoring flow.',
+      } },
   ],
 }

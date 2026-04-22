@@ -71,6 +71,68 @@ const HEALTHCARE_CATEGORIES = [
 const URGENT_CARE_QUERY = 'urgent'
 
 /**
+ * Shared FSQ Places call — both urgent-care and church searches
+ * reuse the same auth / timeout / error handling / JSON parsing
+ * logic. Returns raw FsqPlace[] (so callers can post-filter as
+ * appropriate) or null on unrecoverable error.
+ */
+async function fsqPlacesSearch(opts: {
+  lat: number
+  lon: number
+  radiusMiles: number
+  limit: number
+  categories: string
+  query?: string
+  logTag: string
+}): Promise<FsqPlace[] | null> {
+  const apiKey = process.env.FOURSQUARE_API_KEY
+  if (!apiKey) {
+    console.warn(`[foursquare:${opts.logTag}] FOURSQUARE_API_KEY not set; skipping API call`)
+    return null
+  }
+
+  const cappedMiles = Math.min(Math.max(opts.radiusMiles, 1), 25)
+  const radiusMeters = Math.round(cappedMiles * METERS_PER_MILE)
+
+  const params = new URLSearchParams({
+    ll: `${opts.lat.toFixed(6)},${opts.lon.toFixed(6)}`,
+    radius: String(radiusMeters),
+    categories: opts.categories,
+    limit: String(Math.min(Math.max(opts.limit, 1), 50)),
+    sort: 'DISTANCE',
+  })
+  if (opts.query) params.set('query', opts.query)
+
+  let res: Response
+  try {
+    res = await fetch(`${FSQ_ENDPOINT}?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'X-Places-Api-Version': '2025-06-17',
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(6000),
+    })
+  } catch (err) {
+    console.error(`[foursquare:${opts.logTag}] fetch failed:`, (err as Error).message)
+    return null
+  }
+
+  if (!res.ok) {
+    console.error(`[foursquare:${opts.logTag}] HTTP ${res.status} ${res.statusText}`)
+    return null
+  }
+
+  try {
+    const data = (await res.json()) as FsqResponse
+    return Array.isArray(data.results) ? data.results : []
+  } catch (err) {
+    console.error(`[foursquare:${opts.logTag}] bad JSON:`, (err as Error).message)
+    return null
+  }
+}
+
+/**
  * Search Foursquare Places for urgent care facilities near a lat/lng.
  *
  * @param lat Latitude in decimal degrees
@@ -86,64 +148,21 @@ export async function searchNearbyUrgentCares(
   radiusMiles: number = 10,
   limit: number = 15,
 ): Promise<NearbyUrgentCare[] | null> {
-  const apiKey = process.env.FOURSQUARE_API_KEY
-  if (!apiKey) {
-    console.warn('[foursquare] FOURSQUARE_API_KEY not set; skipping API call')
-    return null
-  }
-
-  // Cap server-side so the client can't demand huge searches
-  const cappedMiles = Math.min(Math.max(radiusMiles, 1), 25)
-  const radiusMeters = Math.round(cappedMiles * METERS_PER_MILE)
-
-  const params = new URLSearchParams({
-    ll: `${lat.toFixed(6)},${lon.toFixed(6)}`,
-    radius: String(radiusMeters),
+  const results = await fsqPlacesSearch({
+    lat,
+    lon,
+    radiusMiles,
+    limit,
     categories: HEALTHCARE_CATEGORIES,
     query: URGENT_CARE_QUERY,
-    limit: String(Math.min(Math.max(limit, 1), 50)),
-    sort: 'DISTANCE',
+    logTag: 'urgent-care',
   })
-
-  let res: Response
-  try {
-    res = await fetch(`${FSQ_ENDPOINT}?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'X-Places-Api-Version': '2025-06-17',
-        Accept: 'application/json',
-      },
-      // Avoid hanging the triage flow if Foursquare is slow
-      signal: AbortSignal.timeout(6000),
-    })
-  } catch (err) {
-    console.error('[foursquare] fetch failed:', (err as Error).message)
-    return null
-  }
-
-  if (!res.ok) {
-    console.error(`[foursquare] HTTP ${res.status} ${res.statusText}`)
-    return null
-  }
-
-  let data: FsqResponse
-  try {
-    data = await res.json() as FsqResponse
-  } catch (err) {
-    console.error('[foursquare] bad JSON:', (err as Error).message)
-    return null
-  }
-
-  if (!data.results || !Array.isArray(data.results)) {
-    return []
-  }
+  if (results === null) return null
 
   // Additional client-side filter: keep only results whose name suggests
   // actual urgent care / clinic / health / medical. The text query is good
   // but occasionally returns tangentially-named places.
-  return data.results
-    .filter(isLikelyHealthcare)
-    .map(normalizeFsqPlace)
+  return results.filter(isLikelyHealthcare).map(normalizeFsqPlace)
 }
 
 /**
@@ -200,6 +219,78 @@ function isLikelyHealthcare(p: FsqPlace): boolean {
     'pediatric', 'primary care',
   ]
   return healthcareTokens.some((token) => name.includes(token))
+}
+
+// ── Church / place-of-worship search ─────────────────────────────────
+// Separate from the urgent-care search because the result shape is
+// different (no "isActive" / "type: urgent_care"), and the category
+// filtering is different — we don't want any clinical keyword
+// post-filter.
+
+export interface NearbyChurch {
+  id: string
+  name: string
+  address?: {
+    street?: string
+    city?: string
+    state?: string
+    zip?: string
+    latitude?: number
+    longitude?: number
+  }
+  phone?: string
+  website?: string
+  /** Distance in meters from the query point */
+  distanceMeters?: number
+}
+
+// Foursquare category IDs for places of worship. Using the broad
+// Spiritual Center parent + several specific children so we match
+// every flavor of congregation — churches, temples, mosques, etc.
+// The patient-facing copy says "church" but the results are broader
+// on purpose.
+const WORSHIP_CATEGORIES = [
+  '12092', // Spiritual Center (parent)
+  '12013', // Church
+  '12098', // Other specific place-of-worship types
+].join(',')
+
+export async function searchNearbyChurches(
+  lat: number,
+  lon: number,
+  radiusMiles: number = 10,
+  limit: number = 15,
+): Promise<NearbyChurch[] | null> {
+  const results = await fsqPlacesSearch({
+    lat,
+    lon,
+    radiusMiles,
+    limit,
+    categories: WORSHIP_CATEGORIES,
+    logTag: 'churches',
+  })
+  if (results === null) return null
+  return results.map(normalizeFsqChurch)
+}
+
+function normalizeFsqChurch(p: FsqPlace): NearbyChurch {
+  const loc = p.location || {}
+  const website = p.website && p.website.startsWith('http') ? p.website : undefined
+  return {
+    id: `fsq:${p.fsq_place_id}`,
+    name: p.name,
+    address: {
+      street: loc.address,
+      city: loc.locality,
+      state: loc.region,
+      zip: loc.postcode,
+      latitude: typeof p.latitude === 'number' ? p.latitude : undefined,
+      longitude: typeof p.longitude === 'number' ? p.longitude : undefined,
+    },
+    phone: p.tel ? p.tel.replace(/\s+/g, ' ').trim() : undefined,
+    website,
+    distanceMeters: p.distance,
+  }
 }
 
 function normalizeFsqPlace(p: FsqPlace): NearbyUrgentCare {

@@ -17,6 +17,8 @@ import { EmergencySymptoms } from './collections/EmergencySymptoms'
 import { StaticContent } from './collections/StaticContent'
 import { TriageSessions } from './collections/TriageSessions'
 import { TriageEvents } from './collections/TriageEvents'
+import { SpiritualCareRequests } from './collections/SpiritualCareRequests'
+import { SpiritualCaregivers } from './collections/SpiritualCaregivers'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -58,6 +60,10 @@ export default buildConfig({
     UrgencyLevels,
     TriageSessions,
     TriageEvents,
+    // Spiritual Care group — patient-submitted prayer/chaplain requests
+    // and the ministry-volunteer rotation that takes those calls.
+    SpiritualCareRequests,
+    SpiritualCaregivers,
     Users,
   ],
   globals: [StaticContent],
