@@ -91,6 +91,7 @@
     "prayerBody": "Toque el botón para abrir su aplicación de correo con un mensaje listo para enviar a nuestro equipo de cuidado espiritual. Escriba tanto o tan poco como desee — leeremos y oraremos por usted.",
     "prayerEmailSubject": "Petición de oración",
     "prayerEmailCta": "Enviar correo a nuestro equipo",
+    "prayerEmailFallback": "O envíe un correo directamente a:",
     "prayerPrivacyNote": "Su mensaje va de su correo directamente a nuestro equipo. Nada se guarda en este sitio.",
     "chaplainHeading": "Hablar con un capellán",
     "chaplainBody": "Un capellán está disponible por teléfono durante el horario diurno. Si le sale el buzón, deje su nombre y número — le devolveremos la llamada.",

@@ -56,6 +56,21 @@ export default async function PrayerRequestPage({
         <span aria-hidden="true">📧</span> {t('prayerEmailCta')}
       </a>
 
+      {/* Fallback: the mailto: link only works if the patient's device has a
+          default email client registered (Outlook / Mail.app / Gmail / etc.).
+          On desktop without one configured, the button silently does nothing.
+          Always surfacing the plain address here lets them long-press (mobile)
+          or right-click (desktop) to copy it into whichever email they use. */}
+      <div className="rounded-2xl border-2 border-[var(--stroke)] bg-[var(--surface-1)] p-3 mt-3 text-center">
+        <p className="text-[12px] text-[var(--ink-3)] mb-1">{t('prayerEmailFallback')}</p>
+        <a
+          href={mailto}
+          className="text-[15px] font-semibold text-[var(--accent-sage-ink)] break-all select-all hover:underline"
+        >
+          {SPIRITUAL_CARE_EMAIL}
+        </a>
+      </div>
+
       <p className="text-[12px] text-[var(--ink-3)] mt-3 mb-6 text-center">
         {t('prayerPrivacyNote')}
       </p>

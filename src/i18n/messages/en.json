@@ -91,6 +91,7 @@
     "prayerBody": "Tap below to open your email app with a message ready to send to our spiritual care team. Write as much or as little as you'd like — we'll read and pray for you.",
     "prayerEmailSubject": "Prayer request",
     "prayerEmailCta": "Email our spiritual care team",
+    "prayerEmailFallback": "Or email us directly at:",
     "prayerPrivacyNote": "Your message goes from your email directly to our team. Nothing is stored on this site.",
     "chaplainHeading": "Speak with a chaplain",
     "chaplainBody": "A chaplain is available by phone during daytime hours. If you reach voicemail, leave your name and number — we'll call you back.",
