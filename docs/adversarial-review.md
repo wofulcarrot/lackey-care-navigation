@@ -1,6 +1,6 @@
 # Adversarial Pre-Launch Review — Lackey Clinic Digital Front Door
 
-**Date:** 2026-04-18
+**Date:** 2026-04-18 (original) / 2026-04-23 (Spiritual Care pivot)
 **Branch reviewed:** `feat/spiritual-care` (includes `main` + Spiritual Care feature)
 **Reviewers:** 4 parallel adversarial agents (security, correctness, reliability/ops, clinical-safety/UX)
 **Scope:** full repo at `C:\Users\jeffr\Lackey-Front-Door\lackey-care-navigation`
@@ -9,6 +9,43 @@ This document consolidates findings from four independent adversarial reviews ru
 current codebase in preparation for going live. Findings are grouped by severity and by the
 review lens that surfaced them. Nothing here is a speculative nit — every item includes a
 concrete file:line and attack / failure scenario.
+
+---
+
+## 2026-04-23 Update — Spiritual Care pivoted to HIPAA-safe hand-off
+
+Several P0 / P1 findings in the original review related to PHI risk on the Spiritual Care
+feature (prayer requests, chaplain callback forms storing patient messages in Neon). After a
+HIPAA review conversation, the feature was redesigned to eliminate PHI collection entirely:
+
+- **Prayer request page** is now a static page with a `mailto:` button. The patient's own
+  email client sends the message directly to Lackey's (HIPAA-covered) spiritual care inbox.
+  No data passes through this site's servers or database.
+- **Chaplain callback page** is now a static page with a `tel:` button + posted hours. The
+  call routes directly to Lackey's (HIPAA-covered) phone line. No phone number is captured.
+- **Find a church** is unchanged — no PHI involved.
+- Both hand-off pages show an always-visible 988 crisis card, which also addresses P0-5
+  (self-harm safety interrupt).
+
+**What this resolved:**
+
+- ✅ **P0-5** (prayer form had no self-harm safety interrupt) — resolved by 988 crisis card.
+- ✅ **P1-5** (`SpiritualCareRequests` retained PII indefinitely) — collection deleted; no
+  data to retain.
+- ✅ HIPAA compliance gaps specific to spiritual care (documented in the 2026-04-23 HIPAA
+  conversation) — **infrastructure BAAs no longer required** for this feature because no
+  PHI transits our stack.
+
+**Remaining launch gates for this feature (org-side, not code):**
+
+1. Confirm `spiritualcare@lackeyclinic.org` (or chosen replacement) is a real mailbox
+   covered by a BAA (Google Workspace Enterprise / Microsoft 365 Enterprise with BAA).
+2. Confirm the chaplain phone line is covered by a BAA (RingCentral HIPAA / Zoom Phone
+   HIPAA / direct carrier with BAA). Placeholder is the main clinic line at
+   `(757) 547-7484`; replace with the real chaplain line before launch.
+3. Confirm chaplain team coverage actually matches the posted hours (Mon–Fri 9am–5pm).
+
+These are all tagged with `TODO(lackey)` in the static-page source files.
 
 ---
 
@@ -52,7 +89,11 @@ concrete file:line and attack / failure scenario.
   `<CrisisAlert />` immediately. Add a persistent 988 affordance in `Header.tsx` next to
   the 911 pill.
 
-### P0-5. Prayer-request form has no self-harm safety interrupt
+### ✅ P0-5. Prayer-request form has no self-harm safety interrupt — RESOLVED 2026-04-23
+_Resolved by the Spiritual Care hand-off pivot: there is no longer a prayer-request form
+that stores patient messages. The new static page has an always-visible 988 crisis card
+above the fold. See the top-of-doc update for details._
+
 - **File:** `src/app/(frontend)/[locale]/spiritual-care/prayer-request/client.tsx` (entire)
 - **Scenario:** A patient in acute suicidal distress types "I don't want to live
   anymore, please pray for me," submits, and sees the reassuring "Thank you — we'll
@@ -148,7 +189,10 @@ concrete file:line and attack / failure scenario.
 - **Fix:** Wrap each call in `Promise.race([call, timeout(5_000)])` and fall through to
   the same fallback path if any call times out.
 
-### P1-5. SpiritualCareRequests retains PII indefinitely
+### ✅ P1-5. SpiritualCareRequests retains PII indefinitely — RESOLVED 2026-04-23
+_Resolved by the Spiritual Care hand-off pivot: the collection was deleted. No PHI is
+stored on this stack for the spiritual care flow. See top-of-doc update._
+
 - **File:** `src/collections/SpiritualCareRequests.ts`
 - **Problem:** No retention hook, no encryption-at-rest note, `read` access is granted
   to any authenticated user (so any editor role reads historic prayer text). Neon
