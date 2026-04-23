@@ -5,5 +5,10 @@ export const careTypes = [
   { name: 'Behavioral Health', icon: '🧠', description: 'Mental health, anxiety, depression, or substance use', sortOrder: 4, isMeta: false, isBehavioralHealth: true },
   { name: 'Medication', icon: '💊', description: 'Prescription refills or medication questions', sortOrder: 5, isMeta: false },
   { name: 'Chronic Care', icon: '📋', description: 'Ongoing conditions like diabetes, high blood pressure', sortOrder: 6, isMeta: false },
+  // Spiritual Care — unlike the clinical care types above, there's no
+  // triage scoring. The customRoute bypasses the question flow and drops
+  // the patient straight into a 3-option navigation hub (prayer request,
+  // church finder, chaplain callback).
+  { name: 'Spiritual Care', icon: '🙏', description: 'Prayer, find a local church, or talk with a chaplain', sortOrder: 7, isMeta: false, customRoute: '/spiritual-care' },
   { name: 'Not Sure', icon: '❓', description: 'I\'m not sure what kind of care I need', sortOrder: 99, isMeta: true },
 ]

@@ -13,6 +13,7 @@ interface CareType {
   icon: string
   description: string
   isMeta: boolean
+  customRoute?: string | null
 }
 
 export function CareTypeSelectionClient({ careTypes }: { careTypes: CareType[] }) {
@@ -25,6 +26,18 @@ export function CareTypeSelectionClient({ careTypes }: { careTypes: CareType[] }
       router.replace(`/${locale}/emergency`)
     }
   }, [router, locale])
+
+  // When a care type has a customRoute (e.g., Spiritual Care →
+  // /spiritual-care) we skip the triage flow entirely. The custom
+  // route is a path relative to the locale root, so we prefix it.
+  function selectCareType(ct: CareType) {
+    track('care_type_selected', { careType: ct.name })
+    if (ct.customRoute) {
+      router.push(`/${locale}${ct.customRoute}`)
+      return
+    }
+    router.push(`/${locale}/triage?careType=${ct.id}`)
+  }
 
   return (
     <div className="px-5 py-5 max-w-[440px] mx-auto">
@@ -39,10 +52,7 @@ export function CareTypeSelectionClient({ careTypes }: { careTypes: CareType[] }
             icon={ct.icon}
             name={ct.name}
             description={ct.description}
-            onClick={() => {
-              track('care_type_selected', { careType: ct.name })
-              router.push(`/${locale}/triage?careType=${ct.id}`)
-            }}
+            onClick={() => selectCareType(ct)}
           />
         ))}
       </div>

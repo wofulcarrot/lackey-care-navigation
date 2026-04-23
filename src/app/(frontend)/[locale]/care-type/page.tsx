@@ -8,6 +8,10 @@ interface CareTypeDoc {
   icon: string
   description: string
   isMeta: boolean
+  // Optional custom route — when set, selecting this care type
+  // bypasses the triage flow and navigates straight to this path
+  // (e.g. Spiritual Care → /spiritual-care).
+  customRoute?: string | null
 }
 
 export default async function CareTypePage({

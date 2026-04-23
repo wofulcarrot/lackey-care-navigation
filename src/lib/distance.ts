@@ -134,3 +134,48 @@ export function formatDistance(miles: number): string {
   if (miles < 10) return `${miles.toFixed(1)} mi`
   return `${Math.round(miles)} mi`
 }
+
+/**
+ * Attach `distanceMiles` to Foursquare-shaped rows. Prefers FSQ's own
+ * distance field (more accurate: actually measures from the queried
+ * origin even when we've normalized lat/lon), falls back to Haversine
+ * on the row's embedded coords. Optionally sorts nearest-first.
+ *
+ * Used by both the urgent-care results screen and the spiritual-care
+ * church finder — keeping this shared prevents the two screens from
+ * drifting apart on how "near" is defined.
+ */
+interface FsqLikeRow {
+  distanceMeters?: number
+  address?: { latitude?: number; longitude?: number }
+}
+
+// Intentionally declared here rather than imported — keeps distance.ts
+// free of dependencies on constants so it can be tree-shaken into
+// leaner client bundles.
+const METERS_PER_MILE = 1609.34
+
+export function attachMilesFromFsq<T extends FsqLikeRow>(
+  rows: T[],
+  origin: { lat: number; lon: number },
+  options: { sort?: boolean } = {},
+): Array<T & { distanceMiles?: number }> {
+  const withDist = rows.map((r) => {
+    const fsqDist =
+      typeof r.distanceMeters === 'number' ? r.distanceMeters / METERS_PER_MILE : undefined
+    const lat = r.address?.latitude
+    const lon = r.address?.longitude
+    const haversineDist =
+      typeof lat === 'number' && typeof lon === 'number'
+        ? distanceMiles(origin.lat, origin.lon, lat, lon)
+        : undefined
+    return { ...r, distanceMiles: fsqDist ?? haversineDist }
+  })
+  if (!options.sort) return withDist
+  return withDist.sort((a, b) => {
+    if (a.distanceMiles == null && b.distanceMiles == null) return 0
+    if (a.distanceMiles == null) return 1
+    if (b.distanceMiles == null) return -1
+    return a.distanceMiles - b.distanceMiles
+  })
+}
