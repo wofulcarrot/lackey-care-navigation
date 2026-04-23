@@ -17,8 +17,6 @@ import { EmergencySymptoms } from './collections/EmergencySymptoms'
 import { StaticContent } from './collections/StaticContent'
 import { TriageSessions } from './collections/TriageSessions'
 import { TriageEvents } from './collections/TriageEvents'
-import { SpiritualCareRequests } from './collections/SpiritualCareRequests'
-import { SpiritualCaregivers } from './collections/SpiritualCaregivers'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -60,10 +58,10 @@ export default buildConfig({
     UrgencyLevels,
     TriageSessions,
     TriageEvents,
-    // Spiritual Care group — patient-submitted prayer/chaplain requests
-    // and the ministry-volunteer rotation that takes those calls.
-    SpiritualCareRequests,
-    SpiritualCaregivers,
+    // NOTE: Spiritual Care is a HIPAA-safe hand-off design — prayer
+    // requests route to the patient's own email client, and chaplain
+    // callbacks are direct tel: links. No PHI-bearing collection is
+    // needed on this side of the stack.
     Users,
   ],
   globals: [StaticContent],
