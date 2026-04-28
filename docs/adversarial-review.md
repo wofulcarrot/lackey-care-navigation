@@ -333,14 +333,39 @@ stored on this stack for the spiritual care flow. See top-of-doc update._
 - **Fix:** Render the disclaimer text inline (no toggle) on at least the landing and
   emergency screens.
 
-### P2-11. Vercel logs may capture PII
+### ✅ P2-11. Vercel logs may capture PII — RESOLVED 2026-04-23 (PR #10)
+_Resolved via the `fix/p2-11-log-redaction` PR: the spiritual-care files in the
+original finding were already deleted by the HIPAA pivot, and the broader leak
+surface across the rest of the app was closed by adding a centralized
+`safeLog` wrapper plus IP-hashing in the rate limiter._
+
 - **Files:** `src/app/api/spiritual-care/{prayer-request,chaplain-request}/route.ts`
   error branches; `src/lib/spiritual-care-email.ts`
 - **Problem:** `console.error((err as Error).message)` can include Payload validation
   messages that echo submitted email/phone/message text. Vercel runtime logs are not
   HIPAA-grade by default.
-- **Fix:** Add a `safeLog(err)` helper that strips common PII keys before emission.
-  Avoid logging whole error objects.
+- **Mitigations applied:**
+  1. **`src/lib/safe-log.ts`** — new wrapper around `console.{error,warn,info}` that
+     runs a regex pass over each variadic arg before emission. Redacts emails,
+     phone numbers, IPv4, IPv6, and digit runs ≥10. Convention documented at the
+     top of the file: do NOT use raw `console.*` in `src/app/api/`, `src/lib/`,
+     or `src/middleware.ts` — use `safeLog` instead. Seed scripts (dev-only) keep
+     plain `console.log`.
+  2. **`ipKey(scope, ip)` helper in `src/lib/rate-limit.ts`** — hashes IPs with
+     SHA-256 + `PAYLOAD_SECRET` salt before they land in the in-memory rate-limit
+     Map, so even if a rate-limit key were ever logged accidentally, the raw IP
+     wouldn't leak. All five callers (triage evaluate / track / log-emergency /
+     nearby-urgent-cares / spiritual-care nearby-churches) updated.
+  3. **Every existing `console.error` / `console.warn` in runtime paths swapped
+     to `safeLog`** — `foursquare.ts`, `triage-session.ts`, `middleware.ts`,
+     and the API routes that previously called `console.*` directly.
+  4. **Middleware dashboard-auth log** — IP is now passed as a redactable arg
+     (not interpolated into the label string) so it gets scrubbed to `[ip]`.
+- **Not addressed (separate work):** Vercel's *access logs* (a different log
+  pipeline from runtime stdout/stderr) still capture client IPs and URL paths
+  by design — those remain Vercel-controlled. Closing that surface would
+  require Vercel Enterprise BAA or migrating to AWS / similar. See the broader
+  HIPAA recommendation tiers documented in this branch's PR.
 
 ### P2-12. `dompurify` declared but unused
 - **File:** `package.json:29`

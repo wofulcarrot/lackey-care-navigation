@@ -12,7 +12,7 @@
 import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { rateLimit } from '@/lib/rate-limit'
+import { rateLimit, ipKey } from '@/lib/rate-limit'
 import { recordSessionLogFailure } from '@/lib/observability'
 
 export const maxDuration = 30
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   try {
     const forwarded = request.headers.get('x-forwarded-for')
     const ip = forwarded?.split(',')[0]?.trim() ?? '127.0.0.1'
-    const { allowed } = rateLimit(`track:${ip}`)
+    const { allowed } = rateLimit(ipKey('track', ip))
     if (!allowed) {
       return new NextResponse(null, { status: 429 })
     }

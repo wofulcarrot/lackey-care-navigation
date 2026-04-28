@@ -7,6 +7,7 @@
 
 import type { Payload } from 'payload'
 import { recordSessionLogFailure } from '@/lib/observability'
+import { safeLog } from '@/lib/safe-log'
 
 // ─── Input validation ──────────────────────────────────────────────────────
 
@@ -48,8 +49,7 @@ export async function logSession(payload: Payload, data: SessionData, label: str
       data: { sessionId, ...data },
     })
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    console.error(`[triage-session] Failed to log ${label}:`, message)
+    safeLog.error(`[triage-session] Failed to log ${label}`, err)
     recordSessionLogFailure(err)
   }
 }

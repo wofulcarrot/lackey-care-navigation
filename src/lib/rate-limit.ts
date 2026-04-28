@@ -2,7 +2,14 @@
  * Simple in-memory sliding window rate limiter.
  * Suitable for single-instance deployments. For multi-instance,
  * swap to @upstash/ratelimit or a Redis-backed solution.
+ *
+ * Keys are IP-derived. Callers should use `ipKey(scope, ip)` so the
+ * raw IP is hashed before it ever lands in the in-memory Map (or
+ * accidentally in any future log line that includes a key). Hash
+ * is salted with PAYLOAD_SECRET so leaked hashes can't be rainbow-
+ * tabled back to IPs.
  */
+import { createHash } from 'node:crypto'
 
 const windowMs = 60_000 // 1 minute
 const maxRequests = 30  // 30 requests per minute per IP
@@ -43,6 +50,25 @@ export function rateLimit(ip: string): { allowed: boolean; remaining: number } {
   timestamps.push(now)
   hits.set(ip, timestamps)
   return { allowed: true, remaining: maxRequests - timestamps.length }
+}
+
+/**
+ * Compose a rate-limit key that does NOT contain the raw client IP.
+ *
+ * Hashes `<ip>:<salt>` with SHA-256 and truncates to 16 hex chars.
+ * The salt is PAYLOAD_SECRET in production (deployment-unique, not in
+ * source) and a fixed dev value otherwise. 16 hex chars = 64 bits of
+ * collision space — way more than enough for per-IP buckets.
+ *
+ * Use this everywhere you'd otherwise build keys like `${scope}:${ip}`.
+ *
+ * Example:
+ *   const { allowed } = rateLimit(ipKey('triage-evaluate', ip))
+ */
+export function ipKey(scope: string, ip: string): string {
+  const salt = process.env.PAYLOAD_SECRET || 'dev-only-rate-limit-salt'
+  const hash = createHash('sha256').update(`${ip}:${salt}`).digest('hex').slice(0, 16)
+  return `${scope}:${hash}`
 }
 
 /** Extract the client IP from the request, preferring Vercel's trusted header. */

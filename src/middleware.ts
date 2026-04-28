@@ -1,6 +1,7 @@
 import createMiddleware from 'next-intl/middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { routing } from './i18n/routing'
+import { safeLog } from './lib/safe-log'
 
 const intlMiddleware = createMiddleware(routing)
 
@@ -75,7 +76,7 @@ async function basicAuth(request: NextRequest): Promise<NextResponse> {
   // Fail-fast in production if credentials are not configured. Do NOT fall
   // back to a default — a missing env var must never silently open the door.
   if (isProduction && (!rawExpectedPassword || !expectedUsername)) {
-    console.error(
+    safeLog.error(
       '[dashboard-auth] FATAL: DASHBOARD_USERNAME or DASHBOARD_PASSWORD is not set in production. Refusing all requests.',
     )
     return new NextResponse('Server configuration error.', { status: 500 })
@@ -85,7 +86,7 @@ async function basicAuth(request: NextRequest): Promise<NextResponse> {
   if (!expectedPassword) {
     // Dev-only fallback. Log a warning each request so it cannot slip past
     // unnoticed in a long-running dev session.
-    console.warn(
+    safeLog.warn(
       '[dashboard-auth] DASHBOARD_PASSWORD is not set; using dev-only fallback. DO NOT ship this to any shared environment.',
     )
     expectedPassword = 'dev-only-change-me'
@@ -136,7 +137,12 @@ async function basicAuth(request: NextRequest): Promise<NextResponse> {
   // x-real-ip. We intentionally do not log the submitted username/password.
   const fwd = request.headers.get('x-forwarded-for') || ''
   const ip = fwd.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown'
-  console.warn(`[dashboard-auth] 401 failed basic-auth attempt ip=${ip}`)
+  // The IP is passed as a redactable arg (NOT interpolated into the label),
+  // so safeLog scrubs it to [ip] before emission. Abuse visibility is
+  // preserved (you still see failed attempts + their relative frequency);
+  // identification of a specific client requires correlating with Vercel's
+  // separate access logs, which is the appropriate audit trail anyway.
+  safeLog.warn('[dashboard-auth] 401 failed basic-auth attempt', { ip })
 
   return unauthorized()
 }

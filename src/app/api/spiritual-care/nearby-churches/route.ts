@@ -16,7 +16,8 @@
  */
 
 import { NextResponse } from 'next/server'
-import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { rateLimit, getClientIp, ipKey } from '@/lib/rate-limit'
+import { safeLog } from '@/lib/safe-log'
 import { searchNearbyChurches } from '@/lib/foursquare'
 
 export const maxDuration = 30
@@ -34,7 +35,7 @@ const US_LON_MAX = -65.0
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request)
-    const { allowed } = rateLimit(`fsq-church:${ip}`)
+    const { allowed } = rateLimit(ipKey('fsq-church', ip))
     if (!allowed) {
       return NextResponse.json(
         { error: 'Too many location searches. Please try again in a minute.' },
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ results })
   } catch (err) {
-    console.error('[nearby-churches] unexpected:', (err as Error).message)
+    safeLog.error('[nearby-churches] unexpected', err)
     return NextResponse.json({ results: [], fallback: true })
   }
 }
