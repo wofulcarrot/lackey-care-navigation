@@ -14,7 +14,8 @@
  */
 
 import { NextResponse } from 'next/server'
-import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { rateLimit, getClientIp, ipKey } from '@/lib/rate-limit'
+import { safeLog } from '@/lib/safe-log'
 import { searchNearbyUrgentCares } from '@/lib/foursquare'
 
 export const maxDuration = 30
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
   try {
     // Tighter rate limit than /evaluate since this hits a paid external API
     const ip = getClientIp(request)
-    const { allowed } = rateLimit(`fsq:${ip}`)
+    const { allowed } = rateLimit(ipKey('fsq', ip))
     if (!allowed) {
       return NextResponse.json(
         { error: 'Too many location searches. Please try again in a minute.' },
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ resources: results })
   } catch (err) {
-    console.error('[nearby-urgent-cares] unexpected:', (err as Error).message)
+    safeLog.error('[nearby-urgent-cares] unexpected', err)
     return NextResponse.json({ resources: [], fallback: true })
   }
 }

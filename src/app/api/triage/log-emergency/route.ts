@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { rateLimit, getClientIp, ipKey } from '@/lib/rate-limit'
 import { safeLocale, safeDevice, logSession } from '@/lib/triage-session'
 
 export const maxDuration = 30
@@ -21,7 +21,7 @@ export const maxDuration = 30
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request)
-    const { allowed } = rateLimit(`emergency:${ip}`)
+    const { allowed } = rateLimit(ipKey('emergency', ip))
     if (!allowed) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again in a minute.' },

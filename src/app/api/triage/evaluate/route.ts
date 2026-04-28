@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { calculateScore, classifyUrgency, checkEscalation } from '@/lib/triage-engine'
-import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { rateLimit, getClientIp, ipKey } from '@/lib/rate-limit'
 import { safeLocale, safeDevice, logSession } from '@/lib/triage-session'
 
 // Allow up to 30s for cold-start (Neon wake + Payload init)
@@ -11,7 +11,7 @@ export const maxDuration = 30
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request)
-    const { allowed } = rateLimit(ip)
+    const { allowed } = rateLimit(ipKey('triage-evaluate', ip))
     if (!allowed) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again in a minute.' },

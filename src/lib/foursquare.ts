@@ -6,6 +6,7 @@
  */
 
 import { METERS_PER_MILE } from '@/lib/constants'
+import { safeLog } from '@/lib/safe-log'
 
 export interface NearbyUrgentCare {
   /** Foursquare venue ID (prefixed 'fsq:' so it can't collide with CareResource numeric IDs) */
@@ -92,7 +93,7 @@ async function fsqPlacesSearch(opts: {
 }): Promise<FsqPlace[] | null> {
   const apiKey = process.env.FOURSQUARE_API_KEY
   if (!apiKey) {
-    console.warn(`[foursquare:${opts.logTag}] FOURSQUARE_API_KEY not set; skipping API call`)
+    safeLog.warn(`[foursquare:${opts.logTag}] FOURSQUARE_API_KEY not set; skipping API call`)
     return null
   }
 
@@ -119,12 +120,12 @@ async function fsqPlacesSearch(opts: {
       signal: AbortSignal.timeout(6000),
     })
   } catch (err) {
-    console.error(`[foursquare:${opts.logTag}] fetch failed:`, (err as Error).message)
+    safeLog.error(`[foursquare:${opts.logTag}] fetch failed`, err)
     return null
   }
 
   if (!res.ok) {
-    console.error(`[foursquare:${opts.logTag}] HTTP ${res.status} ${res.statusText}`)
+    safeLog.error(`[foursquare:${opts.logTag}] HTTP ${res.status} ${res.statusText}`)
     return null
   }
 
@@ -132,7 +133,7 @@ async function fsqPlacesSearch(opts: {
     const data = (await res.json()) as FsqResponse
     return Array.isArray(data.results) ? data.results : []
   } catch (err) {
-    console.error(`[foursquare:${opts.logTag}] bad JSON:`, (err as Error).message)
+    safeLog.error(`[foursquare:${opts.logTag}] bad JSON`, err)
     return null
   }
 }
